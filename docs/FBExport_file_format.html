@@ -1,0 +1,542 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>FBExport file format</title>
+</head>
+<BODY alink=navy vlink=navy link=navy>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=0>
+	<TR>
+		<TD>
+			<H1><FONT FACE="Verdana, sans-serif">FBExport</FONT></H1>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=100% BGCOLOR="#b3b3b3" colspan=2>
+			<P><FONT FACE="Verdana, sans-serif">Tool for
+			exporting and importing data with Firebird and InterBase databases</FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<BR>
+<big><big>FBExport file format</big></big><br>
+<br>
+In case anyone wants to know, or (s)he needs to read/write fbx file
+from other programs.<br>
+I did my best to show this correctly. If you don't get something to
+match the real file, take a look at the code, or e-mail me.<br>
+<br>
+<br>
+<big>Structure of the file:<br>
+</big><br>
+<table cellpadding="2" cellspacing="1" border="0"
+ style="background-color: black; text-align: left; width: 451px; height: 273px;">
+  <tbody>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(192, 192, 192); font-weight: bold;">Byte<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(192, 192, 192); font-weight: bold;">Length<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(192, 192, 192); font-weight: bold;">Value<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(192, 192, 192); font-weight: bold;">Explained<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">0<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">1<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: center;">0<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Always
+zero<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">1<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">1<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: center;">125<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">FBExport
+file version, currently: 125</td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">2<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">1<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: center;">FC<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Field
+count (number of columns)</td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">3<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">FC<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: center;">TYPE<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);"><a
+ href="#ctypes">Column types<br>
+      </a></td>
+    </tr>
+    <tr align="left">
+      <td
+ style="vertical-align: top; background-color: rgb(192, 192, 192);"
+ rowspan="1" colspan="4">The following part repeats <font size=-1>(except for <a href="#blob">BLOBs</a> which don't have it at all)</font><br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">FC + 4<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">1<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: center;">length<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);"><a
+ href="#length">Length</a> of the next data in bytes (read below)</td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">FC + 5<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">length<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: center;">data<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);"><a
+ href="#data">Data</a> itself</td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(192, 192, 192);"
+ rowspan="1" colspan="4"><span style="font-weight: bold;">End of file</span><br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<div style="text-align: left;"><br>
+</div>
+<br>
+<a name="ctypes"></a><br>
+<big>Column types:</big><br>
+<br>
+<table cellpadding="2" cellspacing="1" border="0"
+ style="background-color: black; text-align: left;">
+  <tbody>
+    <tr>
+      <td
+ style="vertical-align: top; font-weight: bold; background-color: rgb(192, 192, 192);">Type
+code<br>
+      </td>
+      <td
+ style="vertical-align: top; font-weight: bold; background-color: rgb(192, 192, 192);">IBPP
+Name<br>
+      </td>
+      <td
+ style="vertical-align: top; font-weight: bold; background-color: rgb(192, 192, 192);">SQL
+Name<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">0<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Array<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Array<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">1<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);"><a href="#blob">Blob</a><br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Blob<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">2<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Date<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Date<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">3<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Time<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Time<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">4<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Timestamp<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Timestamp
+(date in Dialect 1)<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">5<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">String<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Char,
+Varchar<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">6<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Smallint<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Short<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">7<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Integer<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Int<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">8<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">LargeInt<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Decimal(18,
+0) only in Dialect 3<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">9<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Float<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Float<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">10<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Double<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Double
+precision and Decimal/Numeric with scale<br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<a name="blob"></a>
+<br>
+BLOBs are special case, they are written like this:
+<table cellpadding="2" cellspacing="1" border="0"
+ style="background-color: black; text-align: left; ">
+  <tbody>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(192, 192, 192); font-weight: bold;">Byte<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(192, 192, 192); font-weight: bold;">Length<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(192, 192, 192); font-weight: bold;">Value<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(192, 192, 192); font-weight: bold;">Explained<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">0<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">1<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: center;">0 or 1<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">0 when column is NULL, 1 when it is not
+NULL. (hex values 0x00 and 0x01)<br>
+      </td>
+    </tr>
+    <tr align="left">
+      <td
+ style="vertical-align: top; background-color: rgb(192, 192, 192);"
+ rowspan="1" colspan="4">The following bytes repeat until the end of BLOB data<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: middle; background-color: rgb(255, 255, 255); text-align: right;">1<br>
+      </td>
+      <td
+ style="vertical-align: middle; background-color: rgb(255, 255, 255); text-align: right;">4<br>
+      </td>
+      <td
+ style="vertical-align: middle; background-color: rgb(255, 255, 255); text-align: center;">xxxx<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">size of next segment (0-8192) converted to string
+<br><font size=-1>Example: length of 1280 is written as 0x31 0x32 0x38 0x30</font></td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">xxxx + 5<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: right;">xxxx<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: center;">DATA<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Blob data (one segment)</td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<a name="length"></a><br>
+<big>Length:<br>
+</big><br>
+Possible values range from 0 to 255. Value of 255 marks the NULL value.
+To keep the file small, I only use 1 byte for length since it is quite
+enough for most values. But sometimes, there are char columns larger
+than 254 bytes, so more than one byte is needed to represent the
+length. In such cases two additional bytes are used. Here's the final
+explanation:<br>
+<br>
+<table cellpadding="2" cellspacing="1" border="0"
+ style="background-color: black; text-align: left;">
+  <tbody>
+    <tr>
+      <td
+ style="vertical-align: top; font-weight: bold; background-color: rgb(192, 192, 192);">Length
+byte value<br>
+      </td>
+      <td
+ style="vertical-align: top; font-weight: bold; background-color: rgb(192, 192, 192);">Meaning<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: center;">0-253<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Single
+byte length, just read it.</td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: center;">254<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Special
+mark, the following two bytes represent the real length of data (byte1
+* 256 + byte2)</td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255); text-align: center;">255<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">NULL
+value</td>
+    </tr>
+  </tbody>
+</table>
+<br>
+Example: Timestamp 21. July 1997 07:30:00 is stored in file as string
+19970721073000. Length of that string is 14 bytes, so value 14 (hex:
+0e) is written for the <span style="font-style: italic;">length</span>.<br>
+<br>
+<a name="data"></a><br>
+<big>Data:<br>
+</big><br>
+All data is written as readable ASCII characters, except char/varchar
+which are written as they are (if they contain any non-ASCII character,
+those <span style="font-weight: bold;">will</span> be used). All
+numers are converted to strings. I know it is not optimal, but it is
+human readable and compresses very good.<br>
+<br>
+<table cellpadding="2" cellspacing="1" border="0"
+ style="background-color: black; text-align: left;">
+  <tbody>
+    <tr>
+      <td
+ style="vertical-align: top; font-weight: bold; background-color: rgb(192, 192, 192);">IBPP
+Type<br>
+      </td>
+      <td
+ style="vertical-align: top; font-weight: bold; background-color: rgb(192, 192, 192);">Written
+as<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Array<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);"><i>-
+not yet supported by FBExport -</I><br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Blob<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);"><a href="#blob">special case</a><br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Date<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">string
+representation of number of days since 1.1.1900 </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Time<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">string
+representation of number of seconds since midnight </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Timestamp<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">YYYYMMDDhhmmss
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">String<br>
+      </td>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">as
+is<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Smallint<br>
+      </td>
+      <td
+ style="background-color: rgb(255, 255, 255); vertical-align: middle; text-align: left;"
+ rowspan="3" colspan="1">as string<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Integer<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">LargeInt<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Float<br>
+      </td>
+      <td
+ style="background-color: rgb(255, 255, 255); vertical-align: middle;"
+ rowspan="2" colspan="1">as string, dot (.) is used as decimal separator<br>
+      </td>
+    </tr>
+    <tr>
+      <td
+ style="vertical-align: top; background-color: rgb(255, 255, 255);">Double<br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<br>
+If you have any suggestions or remarks, please contact me.
+<br>
+<br>
+<hr>
+<FONT COLOR="#800000"><FONT FACE="Verdana, sans-serif">Copyright &copy; Milan Babu&scaron;kov 2002, 2003, 2004. (<a href=mailto:mbabuskov@yahoo.com>e-mail</a>) </FONT></FONT>
+</BODY>
+</HTML></body>
+</html>

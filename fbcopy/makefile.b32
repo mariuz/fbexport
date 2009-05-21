@@ -1,0 +1,23 @@
+###############################################################################
+#
+#   Project         : FBCopy
+#   File            : makefile.b32
+#   Purpose         : Building fbcopy.exe with Borland Free C++ Compiler
+#
+###############################################################################
+#
+#   Edit this file if your configuration is different, and run: make -f makefile.b32
+
+OBJECTS=fbcopy.cpp TableDependency.cpp args.cpp main.cpp ibpp/core/all_in_one.cpp
+CPP_FLAGS=-DIBPP_WINDOWS -DIBPP_BCC
+
+all:
+	bcc32 $(CPP_FLAGS) -WC -w-inl -Iibpp/core $(OBJECTS)
+#	del *.obj
+#	del *.tds
+
+clean:
+    del *.obj
+    del *.tds
+    del *.exe
+#	EOF

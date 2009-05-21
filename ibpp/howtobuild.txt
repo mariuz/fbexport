@@ -1,0 +1,196 @@
+$Id: howtobuild.txt 60 2006-04-03 15:40:51Z epocman $
+
+IBPP, A c++ Client API for Firebird (and Interbase)
+
+HOW TO INTEGRATE AND USE IBPP IN YOUR OWN PROGRAMMING
+
+---------------------------------------------------------------------------
+
+(C) Copyright 2000-2006 T.I.P. Group S.A. and the IBPP Team (www.ibpp.org)
+
+The contents of this file are subject to the IBPP License (the "License");
+you may not use this file except in compliance with the License.  You may
+obtain a copy of the License at http://www.ibpp.org or in the 'license.txt'
+file which must have been distributed along with this file.
+
+This software, distributed under the License, is distributed on an "AS IS"
+basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.  See the
+License for the specific language governing rights and limitations
+under the License.
+
+---------------------------------------------------------------------------
+
+Dear developers,
+
+This is a short documentation instructing you how to integrate IBPP source code
+in your own projects.
+
+Starting with version 2.5 IBPP does not provide anymore a stand-alone build
+procedure.  IBPP is a set of C++ classes.  A small hand of .h and .cpp files
+implement them.  You might wish to compile them separately in a lib, then use
+the lib in your own programs, but it is as well easy, if not easier and safer,
+to properly integrate IBPP source core inside your own applications build
+procedure.  Here are guidelines to help you do that.
+
+
+(*) WHICH FILES TO INTEGRATE
+
+Choose a proper location in your own source code tree of folders and files to
+host the ibpp files.  A good idea would be to create a folder named 'ibpp'
+where you see fit.  Now unzip the distribution archive to that ibpp folder.
+
+In that ibpp folder you will find some *.txt files, including _this_ file.
+There will also be a sub-folder named 'core'.  It has all the files you need
+to integrate to your build procedure.  All the other folders are only there
+to support the development and testing of ibpp itself.  You don't need to
+compile and link anything else than what is in the 'core' folder to your own
+application.
+
+An alternate way, if you have for instance multiple programs which all use
+ibpp, would be to host the 'ibpp' folder in a common place to all these
+programs and simply reference those 'ibpp/core' files at that common location
+from your multiple build procedures.
+
+Out of the files which are located in the 'ibpp/core' folder, 'ibpp.h' is the
+only one which you will need to #include from your own code files which use
+ibpp interfaces.  That may be all your files, or only a subset of them.
+Wether you include the 'ibpp.h' file from another central header file of your
+project, or locally from within each code file which use ibpp does not matter.
+
+All the other code files (*.cpp) of the 'ibpp/core' folder must be compiled and
+linked with your application as if they were original portions of your
+application, except the file 'all_in_one.cpp'.  There are less than 20 code
+files, this is very easy to add to your Makefile, or visual project file.  In
+a Visual Studio Project, you might conveniently add a "group" (or "filter")
+named 'ibpp' and there 'add' the existing .cpp files from the 'ibpp/core'
+folder.  It is probably even more straightforward to do in your existing
+Makefile on unix.
+
+You can obviously even simplify your integration work by just adding the file
+'all_in_one.cpp' in your build procedure.  In turn, this file includes all the
+others.  This is why you must either include all .cpp files except all_in_one
+or *only* include all_in_one.cpp.
+
+All the header files (*.h), other than 'ibpp.h' itself are included by one or
+multiple of the core code files.  They are NOT included by 'ibpp.h' itself.
+You should not have anything to do regarding those files.  They should be
+found automatically while compiling the core source files (because they are
+in the same directory than the code files themselves).
+
+
+(*) WHAT SPECIFIC COMPILER OPTIONS / SETTINGS TO USE
+
+Generally speaking, don't tamper with the settings of your own projects just
+for the purpose of compiling in and linking in ibpp.  The advantage of
+integrating ibpp source code in this manner is precisely here : it helps be
+sure that the ibpp code has been compiled in a compatible manner with all
+the code of your application.  At the cost of setting up ibpp inside your
+build procedure you will quickly discover that it brings you multiple
+advantages.  Switching between debug and release builds is easier.  The ibpp
+code follows yours, as if it was your own code.  Finding source files while
+debugging is generally automatic, making for easier debugging sessions where
+you can trace execution inside ibpp code itself very easily.  Your compiler
+or linker might even find more opportunities for optimizations in such a setup.
+
+Despite the generic above recommendation not to tamper with your own settings
+due to ibpp, there are some things you need to do though.
+
+First and foremost, ibpp requires C++ Exceptions and RunTime Type Information
+to be supported and enabled in your compiler.  These are part of the C++
+Standard and as such, no modern compiler should have C++ Exceptions and
+Runtime Type Information disabled by default.  If they happen to be disabled,
+you will have to enable them, at the least for all ibpp code files and for all
+of _your_ code files which do include and use ibpp.
+
+Second, ibpp use the C++ Standard library (a very minimal subset of the STL
+part of it, indeed).  Again that should not require you to turn on a switch
+on your compiler, but if you need to, you have to do so.
+
+Third, all ibpp/core files and your files which use ibpp interfaces _must_
+be compiled with some defines.  You can define the required values on the
+compiler command-line (through Makefile for instance) or insert those in
+the properties of your visual projects.  You can also #define them somewhere
+at an appropriate location in one header file of your project, but you have
+to define them.  They drive some conditional code inside the source code of
+IBPP.  Those required preprocessor definitions start in "IBPP_" so they are
+likely not to conflict with any existing definitions in your own code.  To
+keep things simple, you might want to globally compile all of your application
+code with those definitions, no matter if they use or reference ibpp or not.
+It should not harm anything to do so.
+
+The required prepocessor definitions are documented near the top of the ibpp.h
+header file.  Please review it for the details.  Currently one define is
+used to select the platform. To the contrary of previous IBPP versions, the
+compiler is auto-detected by recognizing some hard-coded predefined macros
+provided by each supported compiler.
+
+That's all!
+
+
+(*) WITH WHAT COMPILERS IS IBPP REPORTED TO BE WORKING
+
+Well, a lot of compilers and environment indeed.  The IBPP source code has
+very minimal needs to interface to your system.  It is then largely portable
+C++ Standard code.  You will find very few conditionals inside IBPP source
+code.
+
+IBPP is known to be useable or in useage on the following platforms and
+compilers. The real list is probably much longer.
+
+- Nearly all Linux or Unix systems using GCC 3.2 or higher, wether big-endian or
+little-endian. This also include Mac OS X 'darwin' system.
+
+- Nearly all Windows compilers, provided that they have a decent C++ Standard
+library implementation or can be fitted one optional correct one. This at least
+includes Visual Studio 2005, 2003, and 6.0. Add Borland C++ Builder 6, the
+Borland free C++ compiler, cygwin, mingw, dmc (Digital Mars Compiler).
+
+- 32 bits or 64 bits platforms.
+
+
+(*) COMPILING THE 'TESTS' PROGRAMS
+
+The tests programs are located in the 'ibpp/tests' folder.  You never need to
+compile those tests programs as part of your applications.  That code is NOT
+part of IBPP.  It is part of the project because it is used to run the most
+basic tests when developing IBPP itself.  You can of course build the tests
+programs in order to verify that IBPP works correctly with you installed server.
+
+Compiling the tests program is easy.  It merely needs to compile and link the
+tests.cpp file along with those of the 'ibpp/core' folder.  To make things
+easier and to give samples of build procedures showing integration of IBPP in
+another application build system, you will find various procedures in sub-
+folders of the 'tests' folder.
+
+- unixes: contains a Makefile which should build the tests executable without
+  issues, out of the box, on most linux and unixes systems. At least those
+  where IBPP was tested at least once.
+  
+- bcb6: contains both a visual project and a 'simplest-build.bat' file, which
+  target Borland C++ Builder 6 (visual or command-line compiler).  The
+  'simplest-build.bat' file is really dumb but shows that there is no black
+  magic in compiling IBPP code along with your application code.
+  
+- vs2005: contains both a visual project and a 'simplest-build.bat' file, which
+  target Microsoft Visual Studio 2005 (visual or command-line compiler).  The
+  'simplest-build.bat' file is really dumb but shows that there is no black
+  magic in compiling IBPP code along with your application code.  It should
+  work too for Visual Studio .NET 7.x and possibly for Visual Studio 6.0.
+  
+
+(*) TIPS AND TRICKS
+
+    (o) SVN CLIENT ON WINDOWS
+
+    If you want a very nice and well-done SVN client for Windows, I recommend
+    you TortoiseSVN (http://tortoisesvn.tigris.org). This is an excellent
+	piece of software. This SVN client integrates completely with the Windows
+	Explorer UI. All SVN interactions are very easy to do and what's more the
+	SSH functionnality is built-in ! Give it a try.
+
+
+-- 
+Olivier Mascia
+om at tipgroup dot com
+
+*** EOF ***

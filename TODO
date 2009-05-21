@@ -1,0 +1,2 @@
+FBCopy
+- add support for milliseconds when comparing data (maybe also when copying?)

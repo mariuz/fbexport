@@ -1,0 +1,484 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>FBExport file format</title>
+  <style>
+.najs { background-color: #e0e0e0 }
+  </style>
+</head>
+<body alink="navy" link="navy" vlink="navy">
+<table border="0" cellpadding="2" cellspacing="0" width="100%">
+  <tbody>
+    <tr>
+      <td>
+      <h1><font face="Verdana, sans-serif">FBExport</font></h1>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" bgcolor="#b3b3b3" width="100%">
+      <p><font face="Verdana, sans-serif">Tool for exporting and
+importing data with Firebird and InterBase databases</font></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<br>
+<big style="font-family: verdana;">FBExport manual</big><small><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div class="&lt;ul" style="font-family: verdana;"> <li><small>Basic usage</small></li>
+<ul>
+  <li><small><a href="#eksport">export data from database to .fbx file</a></small></li>
+  <li><small><a href="#import">import data from .fbx file to database</a></small></li>
+  <li><small><a href="#exec">execute sql statement</a></small></li>
+  <li><small><a href="#conn">show list of connected users</a></small></li>
+</ul>
+<li><small>Advanced usage<br>
+  </small></li>
+<ul>
+  <li><small><a href="#link">pump data from one to other database</a></small></li>
+  <li><a href="#updating"><small>updating instead of inserting</small></a></li>
+  <li><small><a href="#running">running large SQL scripts</a><br>
+    </small></li>
+</ul>
+<li><small><a href="#csv">Other formats</a></small></li>
+<ul>
+  <li><small>export as CSV</small></li>
+  <li><small>export as insert statements</small></li>
+  <li><small><a href="#dtformat">formatting date and time values</a><br>
+    </small></li>
+</ul>
+<small><br style="font-family: verdana;">
+</small><big style="font-family: verdana;">Basic usage</big><small><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+<span style="font-family: verdana;">All examples use local server and
+database located at c:\dbases\test.gdb. Default sysdba/masterkey login
+is used.</span><br style="font-family: verdana;">
+<span style="font-family: verdana;">Command-line options are not case
+sensitive, but are written in upper case for better visibility. Also,
+the argument for options don't need to be separated, but they are for
+the same reason.</span><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+<a name="eksport" style="font-family: verdana;"></a><br
+ style="font-family: verdana;">
+</small>
+<div class="najs"><span style="font-weight: bold; font-family: verdana;"><small>Exporting
+data</small></span><span style="font-family: verdana;"><small> from
+table "mytable" to file
+"myfile.fbx"</small></span><small><br style="font-family: verdana;">
+<br style="font-style: italic; font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">fbexport -S -H localhost -D
+c:\dbases\test.gdb -U sysdba -P masterkey -F myfile.fbx -Q "SELECT *
+FROM mytable"</span><br style="font-style: italic;">
+</small></div>
+<small><br style="font-family: verdana;">
+<span style="font-family: verdana;">The host defaults to LOCALHOST and
+username to SYSDBA, so you can write just:</span><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">fbexport -S -D c:\dbases\test.gdb -P
+masterkey -F myfile.fbx -Q "SELECT * FROM mytable"</span><br
+ style="font-style: italic;">
+</small></div>
+<small><br style="font-family: verdana;">
+<span style="font-family: verdana;">If you wish to use direct local
+connection (without TCP/IP), you have to set hostname to nothing like
+this: </span><span style="font-style: italic; font-family: verdana;">-H
+""</span><br style="font-family: verdana;">
+<span style="font-weight: bold; font-family: verdana;"><br>
+WARNING:</span><span style="font-family: verdana;"> I don't recommend
+using </span><span style="font-style: italic; font-family: verdana;">SELECT
+*</span><span style="font-family: verdana;"> as your select statement
+while exporting. Column order is unpredictable and information about
+columns' names is not stored in export-file. Please use column list
+like this:</span><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">-Q "SELECT c1, c2, ... FROM mytable"</span><br
+ style="font-style: italic;">
+</small></div>
+<small><br style="font-family: verdana;">
+<span style="font-family: verdana;">You can use any valid SELECT
+statement to export data (where clause, joins, anything...). However if
+you wish to export all columns of single table, the easiest option is
+to use -V switch. FBExport will build the list of column in
+alphabetical order so you don't have to worry about it</span><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+<span style="font-family: verdana;">Using verbatim copy options</span><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">fbexport -S -D c:\dbases\test.gdb -P
+masterkey -F myfile.fbx -V mytable</span><br style="font-style: italic;">
+</small></div>
+<small><br style="font-family: verdana;">
+<span style="font-family: verdana;">If you don't want to export the
+entire table, you can specify where clause with -Q switch, like this:</span><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">fbexport -S -D c:\dbases\test.gdb -P
+masterkey -F myfile.fbx -V mytable -Q "where x = 10"</span><br
+ style="font-style: italic;">
+</small></div>
+<small><br style="font-family: verdana;">
+<span style="font-family: verdana;">When exporting data of char
+datatype, the field values are padded with blanks to full length, so
+you can use -T option to trim them. It is also good option when
+exporting into CSV format, since you may want to import it somewhere
+else and it may look ugly.</span><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small></div>
+<small><br style="font-family: verdana;">
+<a name="import" style="font-family: verdana;"></a><br
+ style="font-family: verdana;">
+</small>
+<div class="najs"><span style="font-weight: bold; font-family: verdana;"><small>Import
+data</small></span><span style="font-family: verdana;"><small> from
+file "myfile.fbx"&nbsp; to table
+"mytable"</small></span><small><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">fbexport -I -H localhost -D
+c:\dbases\test.gdb -U sysdba -P masterkey -F myfile.fbx -Q "INSERT INTO
+mytable (col1, col2, ...)"</span><br style="font-style: italic;">
+</small></div>
+<small><br style="font-family: verdana;">
+<span style="font-family: verdana;">Same as with exporting: host
+defaults to localhost, username to sysdba, and you can use -V switch if
+you're filling up all columns:</span><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">fbexport -I -D c:\dbases\test.gdb -P
+masterkey -F myfile.fbx -V mytable</span><br style="font-style: italic;">
+</small></div>
+<small><a name="rollback" style="font-family: verdana;"></a><br
+ style="font-family: verdana;">
+<span style="font-family: verdana;">When importing, you may want to use
+-R option to make import an atomic operation. When you use -R option,
+the transaction is rolled back if any errors happen, so either all data
+is imported or none.</span><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+<span style="font-family: verdana;">Also, you can control number of
+errors you wish to allow during import. Use -E option for that. For
+example if you know that some 10 rows of data cannot be inserted:</span><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+<span style="font-style: italic; font-family: verdana;">&nbsp;&nbsp;&nbsp;
+fbexport -I -D c:\dbases\test.gdb -P masterkey -F myfile.fbx -V mytable
+-E 10<br>
+<br>
+</span><span style="font-family: verdana;">Default value is zero (don't
+allow any errors). If you wish to allow unlimited number of errors, use
+value -1 (-E -1).</span><br style="font-family: verdana;">
+<span style="font-style: italic; font-family: verdana;"><br>
+</span><br style="font-family: verdana;">
+</small></div>
+<small><a name="exec" style="font-family: verdana;"></a><br
+ style="font-family: verdana;">
+</small>
+<div class="najs"><span style="font-weight: bold; font-family: verdana;"><small>Executing
+SQL
+statement</small></span><small><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">fbexport -X -D
+c:\dbases\test.gdb -U sysdba -P masterkey -Q "DELETE FROM mytable"</span><br
+ style="font-style: italic;">
+</small></div>
+<small><br style="font-family: verdana;">
+<span style="font-family: verdana;">Unlike isql, fbexport returns
+non-zero value if statement fails, so you can use it in maintenance
+scripts. From version 1.60 you can use it together with -F to load
+statements from sql
+file, and execute multiple statements with error control.<br>
+<br>
+</span></small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">fbexport -X -F script.sql -D
+c:\dbases\test.gdb -U sysdba -P masterkey -Q "DELETE FROM mytable"</span><br
+ style="font-style: italic;">
+</small></div>
+<small><span style="font-family: verdana;"><br>
+<br style="font-family: verdana;">
+</span></small></div>
+<small><br style="font-family: verdana;">
+<a name="conn" style="font-family: verdana;"></a><br
+ style="font-family: verdana;">
+</small>
+<div class="najs"><span style="font-weight: bold; font-family: verdana;"><small>Show
+list of
+connected users</small></span><small><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">fbexport -L -H localhost -D
+c:\dbases\test.gdb -P masterkey</span><br style="font-style: italic;">
+</small></div>
+<small><br style="font-family: verdana;">
+<span style="font-family: verdana;">This command requires server that
+provides Services API, so it may not work on Classic server. It just
+lists names of users that are connected to database. </span><br
+ style="font-family: verdana;">
+<br>
+</small></div>
+<small><br>
+</small><big style="font-family: verdana;">Advanced usage<br>
+<br style="font-family: verdana;">
+</big><small><a name="link" style="font-family: verdana;"></a><br
+ style="font-family: verdana;">
+</small>
+<div class="najs"><span style="font-weight: bold; font-family: verdana;"><small>Pump
+data from
+one to other database</small></span><small><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+<span style="font-family: verdana;">You can pump data with fbexport
+between two databases by exporting and importing. For example, let's
+copy all records of table mytable from server1, database1.gdb to
+server2, database2.gdb</span><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">fbexport -S -V mytable -D database1.gdb -H
+server1 -U username -P password -F mytable.fbx<br>
+fbexport -I -V mytable -D database2.gdb -H server2 -U username -P
+password -F mytable.fbx -R<br style="font-style: italic;">
+</span></small></div>
+<small><br style="font-family: verdana;">
+<span style="font-family: verdana;">Even better, since FBExport can
+read/write standard input/output, it can be done directly, without
+intermediate file (mytable.fbx). Simple piping:</span><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">fbexport -S -V mytable -D db1.gdb -H
+server1 -P masterkey -F - | fbexport -I -V mytable -D db2.gdb -H
+server2 -P
+masterkey -F - -R<br style="font-style: italic;">
+</span></small></div>
+<small><br style="font-family: verdana;">
+<br>
+</small></div>
+<small><a name="updating"></a><br>
+</small>
+<div class="najs"><small><span
+ style="font-weight: bold; font-family: verdana;">Updating
+instead of inserting<br>
+<br>
+</span></small><small><span style="font-family: verdana;">From version
+1.55, FBExport supports ordered parameters which can be directly named
+via -Q option. To use this, when importing, you should use switch -If
+instead of just -I. Usage examples:<br>
+<br>
+<span style="font-family: verdana;">Export data:<br>
+<br style="font-family: verdana;">
+</span></span></small>
+<div style="margin-left: 40px;"><small style="font-family: verdana;"><span
+ style="font-style: italic;">fbexport -S -D
+c:\dbases\test.gdb -P masterkey -F my.fbx -Q "SELECT one, two, three
+FROM mytable"</span></small><br>
+<small style="font-family: verdana;"><span style="font-style: italic;"></span></small></div>
+<small style="font-family: verdana;"><span style="font-style: italic;"><br>
+</span>Regular import:<br>
+<br>
+</small>
+<div style="margin-left: 40px;"><small style="font-family: verdana;"><span
+ style="font-style: italic;"></span></small><small
+ style="font-family: verdana;"><span style="font-style: italic;">fbexport
+-I -D
+c:\dbases\test2.gdb -P masterkey -F my.fbx -Q "INSERT INTO mytable
+(one, two, three)"</span></small><br>
+<small style="font-family: verdana;"><span style="font-style: italic;"></span></small></div>
+<small style="font-family: verdana;"><span style="font-style: italic;"><br>
+</span>Parametrized import:<br>
+<br>
+</small>
+<div style="margin-left: 40px;"><small style="font-family: verdana;"><span
+ style="font-style: italic;"></span></small><small
+ style="font-family: verdana;"><span style="font-style: italic;">fbexport
+-If -D
+c:\dbases\test2.gdb -P masterkey -F my.fbx -Q "INSERT INTO mytable
+(one, two, three) values (:1, :2, :3)"</span></small><br
+ style="font-family: verdana;">
+</div>
+<div style="margin-left: 40px;"><small style="font-family: verdana;"><span
+ style="font-style: italic;">fbexport -If -D
+c:\dbases\test2.gdb -P masterkey -F my.fbx -Q "INSERT INTO mytable
+(two, three, one) values (:2, :3, :1)"</span></small><br
+ style="font-family: verdana;">
+</div>
+<small style="font-family: verdana;"><span style="font-style: italic;"></span></small><small
+ style="font-family: verdana;"><span style="font-style: italic;"><br>
+</span>Parametrized update<br>
+<br>
+</small>
+<div style="margin-left: 40px;"><small style="font-family: verdana;"><span
+ style="font-style: italic;"></span></small><small
+ style="font-family: verdana;"><span style="font-style: italic;">fbexport
+-If -D
+c:\dbases\test2.gdb -P masterkey -F my.fbx -Q "update mytable set two =
+:2, three = :3 where one = :1"</span></small><br
+ style="font-family: verdana;">
+</div>
+<small style="font-family: verdana;"><span style="font-style: italic;"><br>
+</span>This way you can not only export/import, but also update values
+between databases.<br>
+<br>
+</small><small><span style="font-weight: bold; font-family: verdana;"></span></small><small
+ style="font-family: verdana;"><span style="font-style: italic;"></span></small><small
+ style="font-family: verdana;"><br>
+</small></div>
+<span style="font-style: italic;"></span><small><span
+ style="font-weight: bold; font-family: verdana;"><br>
+<a name="running"></a>
+</span></small>
+
+<div class="najs"><span style="font-weight: bold; font-family: verdana;"><small>Running
+large SQL scripts</small></span><small><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+<span style="font-family: verdana;">If you need to run large scripts of
+SQL statements, FBExport can be a great replacement for isql tool, as
+it has much better error checking. If you are importing or updating a
+lot of rows via UPDATE or INSERT statement, you can use -M option to
+commit periodically to improve performance<br>
+<br>
+Load and run sql script file:<br>
+<br>
+</span></small>
+<div style="margin-left: 40px;"><small><span
+ style="font-family: verdana;"><span style="font-style: italic;">fbexport
+-X -D c:\dbases\test.gdb -P masterkey -F script.sql</span></span></small><br
+ style="font-style: italic;">
+<small><span style="font-family: verdana;"></span></small></div>
+<small><span style="font-family: verdana;"><br>
+Commit at each 2000th statement:<br>
+<br>
+</span></small>
+<div style="margin-left: 40px;"><small><span
+ style="font-family: verdana;"><span style="font-style: italic;">fbexport
+-X -D c:\dbases\test2.gdb -P masterkey -F script.sql -C 2000 -M</span></span></small><br
+ style="font-style: italic;">
+<small><span style="font-family: verdana;"></span></small></div>
+<small><span style="font-family: verdana;"><br>
+<br>
+</span></small>
+</div>
+
+<br style="font-family: verdana;">
+<small><a name="csv" style="font-family: verdana;"></a><br
+ style="font-family: verdana;">
+</small><big>Other formats</big><small><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+<span style="font-family: verdana;">Besides </span><a
+ href="FBExport_file_format.html" style="font-family: verdana;">default
+.fbx format</a><span style="font-family: verdana;">, data can be
+exported as rows of CSVs or INSERTs. CSV is short for Comma Separated
+Values. Each database row is output in format:</span><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">"field_value","field_value","field_value"</span><br
+ style="font-style: italic;">
+</small></div>
+<small><br style="font-family: verdana;">
+<span style="font-family: verdana;">Values with NULLs are not quoted,
+example:</span><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">"field_value",,"field_value"</span><br
+ style="font-style: italic;">
+</small></div>
+<small><br style="font-family: verdana;">
+<span style="font-family: verdana;">When exporting as insert
+statements, each row is output like this example:</span><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small><span
+ style="font-style: italic;">INSERT INTO TABLENAME (COLUMN1, COLUMN2,
+COLUMN3) VALUES ('field_value', numeric_value, null);</span><br
+ style="font-style: italic;">
+</small></div>
+<small><br style="font-family: verdana;">
+<a name="dtformat" style="font-family: verdana;"></a><br
+ style="font-family: verdana;">
+<span style="font-family: verdana;">Date, Time and Timestamp columns
+can be customly formatted with J and K swithches</span><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+<span style="font-weight: bold; font-family: verdana;">Date format (J
+switch)</span><br style="font-weight: bold; font-family: verdana;">
+<span style="font-family: verdana;">Default format is D.M.Y which is
+output as 31.01.2000.</span><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small>Format
+specifiers:<br>
+D - day of month 01-31<br>
+d - day of month 1-31<br>
+M - month 01-12<br>
+m - month 1-12<br>
+y - year 00-99<br>
+Y - year 0000-9999<br>
+</small></div>
+<small><br style="font-family: verdana;">
+<span style="font-weight: bold; font-family: verdana;">Time format (K
+switch)</span><br style="font-weight: bold; font-family: verdana;">
+<span style="font-family: verdana;">Default format is H:M:S which is
+output as 23:59:59</span><br style="font-family: verdana;">
+<br style="font-family: verdana;">
+</small>
+<div style="margin-left: 40px; font-family: verdana;"><small>h - hour
+0-23<br>
+H - hour 01-23<br>
+m - minute 0-59<br>
+M - minute 00-59<br>
+s - second 0-59<br>
+S - second 00-59<br>
+</small></div>
+<small><br style="font-family: verdana;">
+<span style="font-weight: bold; font-family: verdana;">Notes on date
+&amp; time formats:</span><br
+ style="font-weight: bold; font-family: verdana;">
+<span style="font-family: verdana;">All other characters are output as
+they are, so you can use colon, slashes, whatever.</span><br
+ style="font-family: verdana;">
+<span style="font-family: verdana;">If you wish to output just the date
+portion of timestamp column, set time format to "" and fbexport</span><br
+ style="font-family: verdana;">
+<span style="font-family: verdana;">will remove the trailing space
+character (between date and time).</span><br
+ style="font-family: verdana;">
+<br style="font-family: verdana;">
+<br style="font-family: verdana;">
+<span style="font-family: verdana;">If you have any suggestions or
+remarks, please contact me.
+</span></small><br>
+<br>
+<hr>
+<font color="#800000"><font face="Verdana, sans-serif">Copyright &copy;
+Milan Babu&#353;kov 2002-2005. (<a href="mailto:mbabuskov@yahoo.com">e-mail</a>)<br>
+<br>
+</font></font>
+</div>
+</body>
+</html>
