@@ -1124,7 +1124,8 @@ bool FBCopy::copyData(IBPP::Statement& st1, IBPP::Statement& st2, int col)
 
     IBPP::SDT DataType = st1->ColumnType(col);
 
-    if (st1->ColumnScale(col)) // FIXME: IBPP has to be changed, this is only a hack
+    // FIXME: IBPP has to be changed, this is only a hack
+    if (DataType != IBPP::sdBlob && st1->ColumnScale(col))
         DataType = IBPP::sdDouble;
 
     //if (DataType == IBPP::sdDate && Dialect == 1)
