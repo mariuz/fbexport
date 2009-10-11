@@ -6,14 +6,20 @@ OBJECTS_FBC=fbcopy/args.o fbcopy/fbcopy.o fbcopy/TableDependency.o fbcopy/main.o
 
 # Compiler & linker flags
 COMPILE_FLAGS=-O1 -DIBPP_LINUX -DIBPP_GCC -Iibpp
+LINK_FLAGS=-pthread -lfbclient
+
+#COMPILE_FLAGS=-O1 -DIBPP_WINDOWS -DIBPP_GCC -Iibpp
+#LINK_FLAGS=
 
 all:	exe/fbcopy exe/fbexport
 
 exe/fbexport: $(OBJECTS_FBE) ibpp/all_in_one.o
-	g++ -pthread -lfbclient ibpp/all_in_one.o $(OBJECTS_FBE) -oexe/fbexport
+	g++ $(LINK_FLAGS) ibpp/all_in_one.o $(OBJECTS_FBE) -oexe/fbexport
 
 exe/fbcopy: $(OBJECTS_FBC) ibpp/all_in_one.o
-	g++ -pthread -lfbclient ibpp/all_in_one.o $(OBJECTS_FBC) -oexe/fbcopy
+	g++ $(LINK_FLAGS) ibpp/all_in_one.o $(OBJECTS_FBC) -oexe/fbcopy
+
+# Linux only
 #	FB2.0: g++ -pthread -lfbclient $(OBJECTS) -o$(EXENAME)
 #	FB1.5: g++ -lfbclient $(OBJECTS) -o$(EXENAME)
 #	FB1.0: g++ -lgds -lcrypt -lm $(OBJECTS) -o$(EXENAME)
@@ -28,8 +34,8 @@ install:
 clean:
 	rm -f fbcopy/*.o
 	rm -f ibpp/all_in_one.o
-	rm -f exe/fbcopy
+	rm -f exe/fbcopy*
 	rm -f fbexport/*.o
-	rm -f exe/fbexport
+	rm -f exe/fbexport*
 
 #EOF
