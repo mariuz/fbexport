@@ -76,6 +76,7 @@ public:
     bool NotNulls;
     bool Html;
     bool Verbose;
+    bool Update;
     int DisplayDifferences;
     tOperation Operation;
 

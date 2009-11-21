@@ -1,3 +1,4 @@
+13. Nov 2009.   Added support for INSERT or UPDATE (when insert fails)
 26. Jun 2009.   Fixed bug when copying blobs with Firebird 2.1
 06. Mar 2009.   Fixed bug when exporting negative values like -0.01
 05. Mar 2009.   FBExport and FBCopy share the same source tree and build now

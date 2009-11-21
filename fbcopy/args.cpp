@@ -57,6 +57,7 @@ Args::Args(int argc, char **argv)
     NotNulls = true;
     Html = false;
     Verbose = false;
+    Update = false;
     Error = "OK";       // initial values (local)
     string temp;
     Operation = opNone;
@@ -78,6 +79,7 @@ Args::Args(int argc, char **argv)
             case 'H':   Html = true;                break;
             case 'F':   FireTriggers = true;        break;
             case 'V':   Verbose = true;             break;
+            case 'U':   Update  = true;             break;
             case '1':   case '2':    case '3':  case '4':
                 DisplayDifferences |= (1 << (c-'1'));
                 break;
@@ -98,6 +100,8 @@ Args::Args(int argc, char **argv)
         Error = "Option N is only available with option A";
     if (Html && (Operation == opSingle || Operation == opCopy))
         Error = "Option H is only available with D, A or X";
+    if (Update && Operation != opCopy)
+        Error = "Option U is only avaliable with C";
 }
 //---------------------------------------------------------------------------
 void Args::createDBInfo(DatabaseInfo& db, char *string)
