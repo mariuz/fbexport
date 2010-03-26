@@ -835,7 +835,7 @@ int FBExport::ExportHuman(IBPP::Statement& st, FILE *fp)
         for (register int i=1; i<=fc; i++)   // output CSV header.
         {
             if (i > 1)
-                fprintf(fp, ",");
+                fprintf(fp, "%s", ar->Separator.c_str());
             fprintf(fp, "%s", st->ColumnAlias(i));
         }
         fprintf(fp, "\n");
