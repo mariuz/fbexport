@@ -32,6 +32,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "TableDependency.h"
+#include <stdio.h>
 
 using namespace std;
 //---------------------------------------------------------------------------------------
