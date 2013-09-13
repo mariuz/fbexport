@@ -26,11 +26,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef FBCopyH
 #define FBCopyH
 
-#define FBCOPY_VERSION "1.70"
+#define FBCOPY_VERSION "1.91"
 #include <set>
 #include <vector>
 #include <list>
 #include <string>
+#include <sstream>
 #include "TableDependency.h"
 #include "args.h"
 #include "ibpp.h"
@@ -49,7 +50,8 @@ private:
     void disableTriggers();
     void enableTriggers();
     bool connect(IBPP::Database& db1, DatabaseInfo d);
-    bool copy(std::string select, std::string insert);
+    bool copy(const std::string& select, const std::string& insert,
+        const std::string& update, std::set<std::string>& pkcols);
     void addDeps(std::list<std::string>& deps, const std::string& table, IBPP::Statement& st);
     void getDependencies(TableDependency* dep, std::string ntable);
     void setDependencies(std::list<std::string> tableList);
@@ -60,6 +62,11 @@ private:
     void copyGeneratorValues(const std::string& gfrom, const std::string& gto);
     void compare();
 
+    int getPkIndex(IBPP::Statement& st1, int i, std::set<std::string>&pkcols);
+    int getPkInfo(const std::string& table, std::string& pkcols, std::stringstream& order);
+    std::string getUpdateStatement(const std::string& table, const std::string& fields,
+        std::set<std::string>& pkcols);
+
     void compareData(const std::string& table, const std::string& fields, const std::string& where);
     int cmpData(IBPP::Statement& st1, IBPP::Statement& st2, int col);
     void addRow(int& counter, int type, IBPP::Statement st, int index, IBPP::Statement *st2 = 0);
@@ -68,8 +75,9 @@ private:
     void setupFromStdin(CompareOrCopy action = ccCopy);
 
     std::string join(const std::set<std::string>& s, const std::string& qualifier, const std::string& glue);
+    std::vector<std::string> explode(const std::string& sep, const std::string& ins);
     std::string params(const std::string& fieldlist);
-    bool copyData(IBPP::Statement& st1, IBPP::Statement& st2, int col);
+    bool copyData(IBPP::Statement& st1, IBPP::Statement& st2, int srccol, int destcol);
     bool copyBlob(IBPP::Statement& st1, IBPP::Statement& st2, int col);
     std::string getDatatype(IBPP::Statement& st1, std::string table, std::string fieldname, bool not_nulls = true);
 

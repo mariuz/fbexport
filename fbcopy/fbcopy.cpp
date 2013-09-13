@@ -68,7 +68,7 @@ int FBCopy::Run(Args *a)
                     (IBPP::Version >> 8) % 256,
                     IBPP::Version % 256);
         fprintf(stderr, "A command-line tool to copy and compare data in Firebird databases.\n\n");
-        fprintf(stderr, "Usage: fbcopy {D|C|A|S|X}[EKNFVH1234] {source} {destination}\n\n");
+        fprintf(stderr, "Usage: fbcopy {D|C|A|S|X}[UEKNFVH1234] {source} {destination}\n\n");
 
         fprintf(stderr, "Source and destination format is [user:password@][host:]database[?charset]\n\n");
 
@@ -81,6 +81,7 @@ int FBCopy::Run(Args *a)
         fprintf(stderr, "X  Compare data in tables (reads definition from stdin), optionally show:\n");
         fprintf(stderr, "   1 same rows, 2 missing rows, 3 extra rows, 4 different rows\n");
         fprintf(stderr, "E  Everything in single transaction (default = transaction per table)\n");
+        fprintf(stderr, "U  if insert fails, try Update statement\n");
         fprintf(stderr, "K  Keep going (default = stop on first record that cannot be copied)\n");
         fprintf(stderr, "V  Verbose, show all errors with K option (default = off)\n");
         fprintf(stderr, "F  Fire triggers (default = temporary deactivate triggers)\n");
@@ -206,6 +207,50 @@ void FBCopy::enableTriggers()
     }
 }
 //---------------------------------------------------------------------------------------
+std::vector<std::string> FBCopy::explode(const std::string& sep, const std::string& ins)
+{
+    std::vector<std::string> v;
+    for (std::string::size_type p = 0; true; p++)
+    {
+        std::string::size_type q = p;
+        p = ins.find(sep, p);
+        if (p == std::string::npos)
+        {
+            v.push_back(ins.substr(q));
+            break;
+        }
+        v.push_back(ins.substr(q, p-q));
+    }
+    return v;
+}
+//---------------------------------------------------------------------------------------
+std::string FBCopy::getUpdateStatement(const std::string& table, const std::string& fields,
+    std::set<std::string>& pkcols)
+{
+    std::string pkc;
+    std::stringstream order;
+    getPkInfo(table, pkc, order);
+
+    std::vector<std::string> fvec = explode(",", fields);
+    std::vector<std::string> pkvec = explode(",", pkc);
+
+    std::set<std::string> updpairs;
+    for (std::vector<std::string>::iterator it = fvec.begin(); it != fvec.end(); it++)
+        updpairs.insert((*it) + " = ? ");
+
+    std::set<std::string> pkpairs;
+    for (std::vector<std::string>::iterator it = pkvec.begin(); it != pkvec.end(); it++)
+    {
+        pkcols.insert(*it);
+        pkpairs.insert((*it) + " = ? ");
+    }
+
+    std::string retval =
+        "UPDATE " + table + " SET " + join(updpairs, "", ",") +
+        " WHERE " + join(pkpairs, "", " and ");
+    return retval;
+}
+//---------------------------------------------------------------------------------------
 void FBCopy::setupFromStdin(CompareOrCopy action)
 {
     if (action == ccCompareData)
@@ -306,8 +351,10 @@ void FBCopy::setupFromStdin(CompareOrCopy action)
             if (!where.empty())
                 select += where;
             std::string insert = "INSERT INTO " + table + " (" + fields + ") VALUES (" + params(fields) + ")";
+            std::set<std::string> pkcols;
+            std::string update = getUpdateStatement(table, fields, pkcols);
             printf("Copying table: %s\n", table.c_str());
-            copy(select, insert);
+            copy(select, insert, update, pkcols);
         }
         else    // compare records
         {
@@ -586,12 +633,9 @@ void FBCopy::compareGeneratorValues(const std::string& gfrom, const std::string&
     }
 }
 //---------------------------------------------------------------------------------------
-void FBCopy::compareData(const std::string& table, const std::string& fields,
-    const std::string& where)
+int FBCopy::getPkInfo(const std::string& table, std::string& pkcols,
+    std::stringstream& order)
 {
-    if (ar->Html && ar->DisplayDifferences)
-        printf("<TABLE border=0 bgcolor=black cellspacing=1 cellpadding=3>\n");
-
     // load primary key
     IBPP::Transaction tr1 = IBPP::TransactionFactory(src, IBPP::amRead);
     tr1->Start();
@@ -604,8 +648,6 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
     );
     st1->Set(1, table);
     st1->Execute();
-    std::string pkcols;
-    std::stringstream order;
     int pkcnt = 0;
     while (st1->Fetch())
     {
@@ -621,6 +663,19 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
         pkcols += cname;
         order << pkcnt;
     }
+    return pkcnt;
+}
+//---------------------------------------------------------------------------------------
+void FBCopy::compareData(const std::string& table, const std::string& fields,
+    const std::string& where)
+{
+    if (ar->Html && ar->DisplayDifferences)
+        printf("<TABLE border=0 bgcolor=black cellspacing=1 cellpadding=3>\n");
+
+    std::string pkcols;
+    std::stringstream order;
+    int pkcnt = getPkInfo(table, pkcols, order);
+
     if (pkcols == "")    // if !PK, (NOW: exit) LATER: try column with UniqueKey
     {
         if (ar->Html)
@@ -640,6 +695,10 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
         printf("%-32s", table.c_str());
         fflush(stdout);
     }
+
+    IBPP::Transaction tr1 = IBPP::TransactionFactory(src, IBPP::amRead);
+    tr1->Start();
+    IBPP::Statement st1 = IBPP::StatementFactory(src, tr1);
 
     IBPP::Transaction tr2 = IBPP::TransactionFactory(dest, IBPP::amRead);
     tr2->Start();
@@ -941,11 +1000,24 @@ std::string FBCopy::join(const std::set<std::string>& s, const std::string& qual
     for (std::set<std::string>::const_iterator it = s.begin(); it != s.end(); ++it)
         ret += glue + qualifier + (*it) + qualifier;
     if (!ret.empty())
-        ret.erase(0, 1);    // remove initial ","
+        ret.erase(0, glue.length());    // remove initial ","
     return ret;
 }
 //---------------------------------------------------------------------------------------
-bool FBCopy::copy(std::string select, std::string insert)
+int FBCopy::getPkIndex(IBPP::Statement& st1, int i, std::set<std::string>&pkcols)
+{
+    int col = st1->Columns();
+    for (std::set<std::string>::iterator it = pkcols.begin(); it != pkcols.end(); ++it)
+    {
+        col++;
+        if ((*it) == st1->ColumnName(i))
+            return col;
+    }
+    return -1;
+}
+//---------------------------------------------------------------------------------------
+bool FBCopy::copy(const std::string& select, const std::string& insert,
+    const std::string& update, std::set<std::string>& pkcols)
 {
     if (!ar->SingleTransaction)
     {
@@ -954,8 +1026,24 @@ bool FBCopy::copy(std::string select, std::string insert)
     }
     IBPP::Statement st1 = IBPP::StatementFactory(src, trans1);
     IBPP::Statement st2 = IBPP::StatementFactory(dest, trans2);
+    IBPP::Statement st3;
     st1->Prepare(select);
     st2->Prepare(insert);
+
+    if (ar->Verbose)
+    {
+        fprintf(stderr, "SELECT: %s\n", select.c_str());
+        fprintf(stderr, "INSERT: %s\n", insert.c_str());
+        fprintf(stderr, "UPDATE: %s\n", update.c_str());
+    }
+
+    if (ar->Update)
+    {
+        st3 = IBPP::StatementFactory(dest, trans2);
+        st3->Prepare(update);
+    }
+
+    int columns = st1->Columns();
 
     int cnt = 0;
     int errors = 0;
@@ -964,20 +1052,36 @@ bool FBCopy::copy(std::string select, std::string insert)
     while (st1->Fetch())
     {
         bool allColumnsOk = true;
-        for (int i=1; i<=st1->Columns(); ++i)
+        for (int i=1; i<=columns; ++i)
         {
+            int pkx = ar->Update ? getPkIndex(st1, i, pkcols) : -1;
             if (st1->IsNull(i))
             {
                 st2->SetNull(i);
+                if (ar->Update)
+                {
+                    st3->SetNull(i);
+                    if (pkx > -1)
+                        st3->SetNull(pkx);
+                }
                 continue;
             }
-            if (!copyData(st1, st2, i))
+            int ok = copyData(st1, st2, i, i) ? 0 : 1;
+            if (ok == 0 && ar->Update)
+                ok = copyData(st1, st3, i, i) ? 0 : 2;
+            if (ok == 0 && pkx > -1 && !copyData(st1, st3, i, pkx))
+            {
+                fprintf(stderr, "Error copying column number: %d, name: %s to primary key parameter: %d\n",
+                    i, st1->ColumnName(i), pkx);
+                return false;
+            }
+            if (ok != 0)
             {
                 allColumnsOk = false;
                 if (!ar->KeepGoing)
                 {
-                    fprintf(stderr, "Error copying column number: %d, name: %s\n",
-                        i, st1->ColumnName(i));
+                    fprintf(stderr, "Error copying column number: %d, name: %s, for operation: %s\n",
+                        i, st1->ColumnName(i), ok == 1 ? "insert" : "update");
                     return false;
                 }
             }
@@ -985,7 +1089,7 @@ bool FBCopy::copy(std::string select, std::string insert)
         if (!allColumnsOk)
             partial++;
 
-        if (ar->KeepGoing)
+        if (ar->KeepGoing || ar->Update)
         {
             try
             {
@@ -993,11 +1097,36 @@ bool FBCopy::copy(std::string select, std::string insert)
             }
             catch (IBPP::Exception& e)
             {
-                errors++;
-                if (!allColumnsOk)  // don't count as we didn't succeed anyway
-                    partial--;
-                if (ar->Verbose)
-                    fprintf(stderr, "Error: %s\n", e.ErrorMessage());
+                if (ar->Update)
+                {
+                    if (ar->KeepGoing)
+                    {
+                        try
+                        {
+                            st3->Execute();
+                        }
+                        catch (IBPP::Exception& e2)
+                        {
+                            errors++;
+                            if (!allColumnsOk)  // don't count as we didn't succeed anyway
+                                partial--;
+                            if (ar->Verbose)
+                                fprintf(stderr, "Error: %s\n", e2.ErrorMessage());
+                        }
+                    }
+                    else
+                    {
+                        st3->Execute();
+                    }
+                }
+                else
+                {
+                    errors++;
+                    if (!allColumnsOk)  // don't count as we didn't succeed anyway
+                        partial--;
+                    if (ar->Verbose)
+                        fprintf(stderr, "Error: %s\n", e.ErrorMessage());
+                }
             }
         }
         else
@@ -1109,7 +1238,8 @@ int FBCopy::cmpData(IBPP::Statement& st1, IBPP::Statement& st2, int col)
     };
 }
 //---------------------------------------------------------------------------------------
-bool FBCopy::copyData(IBPP::Statement& st1, IBPP::Statement& st2, int col)
+bool FBCopy::copyData(IBPP::Statement& st1, IBPP::Statement& st2, int srccol,
+    int destcol)
 {
     string s;       // temporary variables, declared here since declaring
     char str[30];   // inside "switch" isn't possible
@@ -1122,10 +1252,10 @@ bool FBCopy::copyData(IBPP::Statement& st1, IBPP::Statement& st2, int col)
     IBPP::Time t;
     IBPP::Timestamp ts;
 
-    IBPP::SDT DataType = st1->ColumnType(col);
+    IBPP::SDT DataType = st1->ColumnType(srccol);
 
     // FIXME: IBPP has to be changed, this is only a hack
-    if (DataType != IBPP::sdBlob && st1->ColumnScale(col))
+    if (DataType != IBPP::sdBlob && st1->ColumnScale(srccol))
         DataType = IBPP::sdDouble;
 
     //if (DataType == IBPP::sdDate && Dialect == 1)
@@ -1136,48 +1266,48 @@ bool FBCopy::copyData(IBPP::Statement& st1, IBPP::Statement& st2, int col)
         switch (DataType)
         {
             case IBPP::sdString:
-                st1->Get(col, s);
-                st2->Set(col, s);
+                st1->Get(srccol, s);
+                st2->Set(destcol, s);
                 return true;
             case IBPP::sdSmallint:
-                st1->Get(col, sh);
-                st2->Set(col, sh);
+                st1->Get(srccol, sh);
+                st2->Set(destcol, sh);
                 return true;
             case IBPP::sdInteger:
-                st1->Get(col, x);
-                st2->Set(col, x);
+                st1->Get(srccol, x);
+                st2->Set(destcol, x);
                 return true;
             case IBPP::sdDate:
-                st1->Get(col, d);
-                st2->Set(col, d);
+                st1->Get(srccol, d);
+                st2->Set(destcol, d);
                 return true;
             case IBPP::sdTime:
-                st1->Get(col, t);
-                st2->Set(col, t);
+                st1->Get(srccol, t);
+                st2->Set(destcol, t);
                 return true;
             case IBPP::sdTimestamp:
-                st1->Get(col, ts);
-                st2->Set(col, ts);
+                st1->Get(srccol, ts);
+                st2->Set(destcol, ts);
                 return true;
             case IBPP::sdFloat:
-                st1->Get(col, fval);
-                st2->Set(col, fval);
+                st1->Get(srccol, fval);
+                st2->Set(destcol, fval);
                 return true;
             case IBPP::sdDouble:
-                st1->Get(col, dval);
-                st2->Set(col, dval);
+                st1->Get(srccol, dval);
+                st2->Set(destcol, dval);
                 return true;
             case IBPP::sdLargeint:
-                st1->Get(col, int64val);
-                st2->Set(col, int64val);
+                st1->Get(srccol, int64val);
+                st2->Set(destcol, int64val);
                 return true;
             case IBPP::sdBlob:
-                return copyBlob(st1, st2, col);
+                return copyBlob(st1, st2, srccol);  // blob cannot be PK
 
             default:
                 fprintf(stderr, "WARNING: Datatype not supported! Column: %s\n",
-                    st1->ColumnName(col));
-                st2->SetNull(col);
+                    st1->ColumnName(srccol));
+                st2->SetNull(destcol);
         };
     }
     catch (IBPP::Exception &e)
@@ -1486,8 +1616,10 @@ void FBCopy::compareTable(std::string table, IBPP::Statement& st1, IBPP::Stateme
             std::string insert = "INSERT INTO " + table + " ("
                 + join(fields, "\"", ",")
                 + ") VALUES (" + params(join(fields,"",",")) + ")";
+            //std::string update = getUpdateStatement(table, fields, pkcols)
             printf("Copying table: %s\n", table.c_str());
-            copy(select, insert);
+            std::set<std::string> dummy;
+            copy(select, insert, "", dummy);
         }
     }
 }
