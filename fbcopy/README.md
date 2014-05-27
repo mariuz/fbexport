@@ -8,7 +8,7 @@ Tool for copying and comparing data in Firebird databases
 *   Ability to compare data in databases
 *   Can disable triggers to avoid side-effects
 *   Understands foreign keys so order of copying is correct
-*   Can work in overwrite mode (UPDATE if INSERT fails) - since version 1.90
+*   Can work in overwrite mode (UPDATE if INSERT fails) 
 *   Open source under Expat (a.k.a. MIT) license
 *   Now you can freely use any part of FBCopy code in your applications
 *   Read [HTML manual](fbcopy-manual.html) for usage instructions
