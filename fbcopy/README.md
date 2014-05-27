@@ -22,8 +22,7 @@ Linux and Windows versions are available, but I hope it can be built
 with any compiler that can build IBPP library. It has been tested and
 works on FreeBSD as well.
 
-Since version 1.50, you can
-also **compare data** in different databases. It
+You can also **compare data** in different databases. It
 can output a simple tabular overview of different/same records, or a detailed HTML that
 shows each record in both databases. See [manual](fbcopy-manual.html) for details.
 
@@ -42,8 +41,7 @@ There were no tools for this, so I decided to write one.
 
 This tool uses [IBPP library](http://ibpp.sourceforge.net/)
 for database access. It supports Firebird 1.0, 1.5, 2.0 and InterBase 6
-databases. It should also work with InterBase 6.5 and 7,
-but noone has confirmed it yet. If it works for you, please let me
+databases. If it works for you, please let me
 know. As IBPP project grows, I hope to support all database engines
 they do.
 
