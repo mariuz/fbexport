@@ -36,10 +36,7 @@ space. It can also export data in CSV format and as INSERT statements.
 FBExport is a command-line
 tool, so you can easily use it inside batch scripts. Currently, Linux
 and Windows versions are available, but I hope it can be built with any
-compiler that can build IBPP library. For versions 1.40 to 1.60, the is
-also a GUI version of the tool available. GUI is not flexible enough to
-support the newest features in version 1.65, so 1.60 will probably be
-the last version with GUI variant.
+compiler that can build IBPP library. 
 
 FBExport is released as a single package containing
 source code, linux and windows command-line
