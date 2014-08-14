@@ -30,7 +30,7 @@
 #endif
 
 #ifdef IBPP_LINUX
-#define __cdecl /**/
+#define __cdecl 
 #include "stdarg.h"
 #endif
 
