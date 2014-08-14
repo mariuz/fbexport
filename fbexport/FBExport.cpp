@@ -308,6 +308,7 @@ string FBExport::CreateHumanString(IBPP::Statement& st, int col)
     switch (DataType)
     {
         case IBPP::sdString:
+        case IBPP::sdBlob:
             st->Get(col, value);
             if (ar->TrimChars)
                 value.erase(value.find_last_not_of(' ')+1);
@@ -355,7 +356,7 @@ string FBExport::CreateHumanString(IBPP::Statement& st, int col)
             break;
 
         default:
-            Printf("\nWARNING: Datatype not supported!!!\n");
+            Printf("\nWARNING: Datatype not supported!!\n");
     };
 
     if (ar->ExportFormat == xefCSV)         // CVS format, each field's value is quoted
