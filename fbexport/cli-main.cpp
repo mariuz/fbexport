@@ -1,8 +1,4 @@
 ///////////////////////////////////////////////////////////////////////////////
-//
-//  File        : fbxmain.cpp
-//  Version     : 1.35
-//  Modified    : 27. Dec 2003.
 //  Author      : Milan Babuskov (mbabuskov@yahoo.com)
 //  Purpose     : This file contains main() function for command-line version
 //                and some functions specific to cmdline version
@@ -48,7 +44,6 @@
 
 #include "ParseArgs.h"
 #include "FBExport.h"
-//---------------------------------------------------------------------------------------
 int __cdecl main(int argc, char* argv[])
 {
 	if (! IBPP::CheckVersion(IBPP::Version))
@@ -62,7 +57,6 @@ int __cdecl main(int argc, char* argv[])
 	FBExport F;
 	return F.Init(&ar);	// Init() is used since ctor can't return values
 }
-//---------------------------------------------------------------------------------------
 void FBExport::Printf(const char *format, ...)
 {
    va_list argptr;
@@ -70,4 +64,3 @@ void FBExport::Printf(const char *format, ...)
    vfprintf(stderr, format, argptr);
    va_end(argptr);
 }
-//---------------------------------------------------------------------------------------
