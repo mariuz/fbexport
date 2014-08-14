@@ -78,11 +78,8 @@ values, executing statements, commiting, etc.
 **Restrictions**
 
 This tool uses [IBPP library](http://ibpp.sourceforge.net/)
-for database access. It supports Firebird 1.0, 1.5, 2.0, 2.1 and InterBase 6
-databases. It should also work with InterBase 6.5 and 7,
-but noone has confirmed it yet. If it works for you, please let me
-know. As IBPP project grows, I hope to support all database engines
-they do.
+for database access. It supports Firebird 1.0, 1.5, 2.0, 2.1, 2.5 
+databases. 
 
 FBExport doesn't support ARRAY datatype.
 
