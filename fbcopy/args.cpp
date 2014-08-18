@@ -36,7 +36,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdlib.h>
 #pragma hdrstop
 #include "args.h"
-//---------------------------------------------------------------------------
 Args::Args(int argc, char **argv)
 {
     if (argc == 1)
@@ -103,7 +102,6 @@ Args::Args(int argc, char **argv)
     if (Update && Operation != opCopy)
         Error = "Option U is only avaliable with C";
 }
-//---------------------------------------------------------------------------
 void Args::createDBInfo(DatabaseInfo& db, char *string)
 {
     db.Charset = "";
@@ -161,5 +159,4 @@ void Args::createDBInfo(DatabaseInfo& db, char *string)
     }
     db.Database = s;
 }
-//---------------------------------------------------------------------------
 #pragma package(smart_init)
