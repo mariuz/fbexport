@@ -683,9 +683,10 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
         {
           printf("<TR bgcolor=#FFBBBB><TD COLSPAN=5>Table %s doesn't have primary key. Skipping.</TD></TR>\n", table.c_str());
           if (ar->DisplayDifferences) {
-            printf("</TABLE><br><BR>\n");
             if (ar->Limited) {
-              printf("<STYLE> table#%s : {display:none}</STYLE>\n", table.c_str());
+              printf("</TABLE><SCRIPT>document.getElementById(\"%s\").style.display = \"none\"; </SCRIPT>\n", table.c_str());
+            } else {
+              printf("</TABLE><br><BR>\n");
             }
           }
         }
@@ -789,20 +790,23 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
 
     if (ar->Html)
     {
-        if (ar->DisplayDifferences)
-            printf("<TR bgcolor=black><TD nowrap><font color=white>Same: %d, Different: %d, Missing: %d, Extra: %d.</font></TD></TR>\n</TABLE>\n<BR><BR>",
+        if (ar->DisplayDifferences) {
+            printf("<TR bgcolor=black><TD nowrap><font color=white>Same: %d, Different: %d, Missing: %d, Extra: %d.</font></TD></TR>\n",
             same, different, missing, extra);
             if (ar->Limited ) {
                if (((ar->DisplayDifferences & Args::ShowMissing) && missing>0) ||
                    ((ar->DisplayDifferences & Args::ShowExtra) && extra>0) ||
                    ((ar->DisplayDifferences & Args::ShowCommon) && same>0) ||
                    ((ar->DisplayDifferences & Args::ShowDifferent) && different>0)) {
+               printf("</TABLE>\n<BR><BR>");
                } else {
-                 printf("<STYLE> table#%s : {display:none}</STYLE>\n", table.c_str());
+                 printf("</TABLE>\n<SCRIPT>document.getElementById(\"%s\").style.display = \"none\"; </SCRIPT>\n", table.c_str());
                }
 
+            } else {
+               printf("</TABLE>\n<BR><BR>");
             }
-        else
+        } else
             printf("<TD align=right>%d</TD><TD align=right>%d</TD><TD align=right>%d</TD><TD align=right>%d</TD></TR>\n",
             same, different, missing, extra);
     }
