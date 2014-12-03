@@ -87,6 +87,7 @@ int FBCopy::Run(Args *a)
         fprintf(stderr, "F  Fire triggers (default = temporary deactivate triggers)\n");
         fprintf(stderr, "N  Nulls - used with A. Doesn't put NOT NULL in ALTER TABLE statements\n");
         fprintf(stderr, "H  Html  - used with D, A, X. Outputs differences in HTML format\n");
+        fprintf(stderr, "L  Limited - if table doesn't have row to display - don't show the table\n");
         fprintf(stderr, "Options are not case-sensitive.\n\n");
 
         if (ar->Error != "Display help")
@@ -670,7 +671,7 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
     const std::string& where)
 {
     if (ar->Html && ar->DisplayDifferences)
-        printf("<TABLE border=0 bgcolor=black cellspacing=1 cellpadding=3>\n");
+        printf("<TABLE id=\"%s\" border=0 bgcolor=black cellspacing=1 cellpadding=3>\n", table.c_str());
 
     std::string pkcols;
     std::stringstream order;
@@ -680,9 +681,13 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
     {
         if (ar->Html)
         {
-            printf("<TR bgcolor=#FFBBBB><TD COLSPAN=5>Table %s doesn't have primary key. Skipping.</TD></TR>\n", table.c_str());
-            if (ar->DisplayDifferences)
-                printf("</TABLE><br><BR>\n");
+          printf("<TR bgcolor=#FFBBBB><TD COLSPAN=5>Table %s doesn't have primary key. Skipping.</TD></TR>\n", table.c_str());
+          if (ar->DisplayDifferences) {
+            printf("</TABLE><br><BR>\n");
+            if (ar->Limited) {
+              printf("<STYLE> table#%s : {display:none}</STYLE>\n", table.c_str());
+            }
+          }
         }
         else
             fprintf(stderr, "Table %s doesn't have primary key. Skipping.\n", table.c_str());
@@ -787,6 +792,16 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
         if (ar->DisplayDifferences)
             printf("<TR bgcolor=black><TD nowrap><font color=white>Same: %d, Different: %d, Missing: %d, Extra: %d.</font></TD></TR>\n</TABLE>\n<BR><BR>",
             same, different, missing, extra);
+            if (ar->Limited ) {
+               if (((ar->DisplayDifferences & Args::ShowMissing) && missing>0) ||
+                   ((ar->DisplayDifferences & Args::ShowExtra) && extra>0) ||
+                   ((ar->DisplayDifferences & Args::ShowCommon) && same>0) ||
+                   ((ar->DisplayDifferences & Args::ShowDifferent) && different>0)) {
+               } else {
+                 printf("<STYLE> table#%s : {display:none}</STYLE>\n", table.c_str());
+               }
+
+            }
         else
             printf("<TD align=right>%d</TD><TD align=right>%d</TD><TD align=right>%d</TD><TD align=right>%d</TD></TR>\n",
             same, different, missing, extra);
