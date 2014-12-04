@@ -500,12 +500,11 @@ string createHumanString(IBPP::Statement& st, int col, bool& numeric)
             value = str;
             break;
         case IBPP::sdTimestamp:
-            /*
             st->Get(col, ts);
-            sprintf(str, "%02d.%02d.%02d %02d:%02d:%02d", day, month, year%100,
-                );
-            value = GetHumanTimestamp(ts);
-            */
+            IBPP::ttoi(ts.GetTime(), &hour, &minute, &second, &millisec);
+            IBPP::dtoi(ts.GetDate(), &year, &month, &day);
+            sprintf(str, "%02d-%02d-%02d %02d:%02d:%02d", day, month, year, hour, minute, second);
+            value = str;
             break;
         case IBPP::sdFloat:
             st->Get(col, &fval);
