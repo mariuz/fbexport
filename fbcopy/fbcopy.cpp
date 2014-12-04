@@ -489,7 +489,7 @@ string createHumanString(IBPP::Statement& st, int col, bool& numeric)
             st->Get(col, d);
             if (IBPP::dtoi(d.GetDate(), &year, &month, &day))
             {
-                sprintf(str, "%04d-%02d-%02d", year, month, day);
+                sprintf(str, "%04d&#x2011;%02d&#x2011;%02d", year, month, day);
                 value = str;
             }
             break;
@@ -503,7 +503,7 @@ string createHumanString(IBPP::Statement& st, int col, bool& numeric)
             st->Get(col, ts);
             IBPP::ttoi(ts.GetTime(), &hour, &minute, &second, &millisec);
             IBPP::dtoi(ts.GetDate(), &year, &month, &day);
-            sprintf(str, "%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second);
+            sprintf(str, "%04d&#x2011;%02d&#x2011;%02d&nbsp;%02d:%02d:%02d", year, month, day, hour, minute, second);
             value = str;
             break;
         case IBPP::sdFloat:
