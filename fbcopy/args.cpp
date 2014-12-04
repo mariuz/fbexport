@@ -55,6 +55,7 @@ Args::Args(int argc, char **argv)
     SingleTransaction = false;
     NotNulls = true;
     Html = false;
+    Limited = false;
     Verbose = false;
     Update = false;
     Error = "OK";       // initial values (local)
@@ -79,6 +80,7 @@ Args::Args(int argc, char **argv)
             case 'F':   FireTriggers = true;        break;
             case 'V':   Verbose = true;             break;
             case 'U':   Update  = true;             break;
+            case 'L':   Limited = true;             break;
             case '1':   case '2':    case '3':  case '4':
                 DisplayDifferences |= (1 << (c-'1'));
                 break;

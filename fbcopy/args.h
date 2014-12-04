@@ -77,6 +77,7 @@ public:
     bool Html;
     bool Verbose;
     bool Update;
+    bool Limited;
     int DisplayDifferences;
     tOperation Operation;
 
