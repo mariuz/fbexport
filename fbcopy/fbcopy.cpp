@@ -489,7 +489,7 @@ string createHumanString(IBPP::Statement& st, int col, bool& numeric)
             st->Get(col, d);
             if (IBPP::dtoi(d.GetDate(), &year, &month, &day))
             {
-                sprintf(str, "%02d.%02d.%02d", day, month, year%100);
+                sprintf(str, "%04d&#x2011;%02d&#x2011;%02d", year, month, day);
                 value = str;
             }
             break;
@@ -500,12 +500,11 @@ string createHumanString(IBPP::Statement& st, int col, bool& numeric)
             value = str;
             break;
         case IBPP::sdTimestamp:
-            /*
             st->Get(col, ts);
-            sprintf(str, "%02d.%02d.%02d %02d:%02d:%02d", day, month, year%100,
-                );
-            value = GetHumanTimestamp(ts);
-            */
+            IBPP::ttoi(ts.GetTime(), &hour, &minute, &second, &millisec);
+            IBPP::dtoi(ts.GetDate(), &year, &month, &day);
+            sprintf(str, "%04d&#x2011;%02d&#x2011;%02d&nbsp;%02d:%02d:%02d", year, month, day, hour, minute, second);
+            value = str;
             break;
         case IBPP::sdFloat:
             st->Get(col, &fval);
@@ -721,7 +720,7 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
         if (ar->DisplayDifferences)
         {
             printf("<TR><TD colspan=%d><font size=+1 color=white><B>%s</B></font></TD></TR>\n", st1->Columns(), table.c_str());
-            printf("<tr bgcolor=#666699\n");    // header
+            printf("<tr bgcolor=#666699>\n");    // header
             for (int i=pkcnt+1; i<=st1->Columns(); ++i)
                 printf("<td nowrap><font color=white>%s</font></td>", st1->ColumnName(i));
             printf("</tr>");
