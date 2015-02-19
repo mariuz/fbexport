@@ -1,4 +1,3 @@
-# Tools for Firebird developers
 
 # FBCopy manual
 
