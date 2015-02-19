@@ -29,19 +29,19 @@
 //  Contributor(s): Istvan Matyasi.
 //
 ///////////////////////////////////////////////////////////////////////////////
-//---------------------------------------------------------------------------
+
 #include <stdio.h>
 #include <stdlib.h>
 #pragma hdrstop
 #include "ParseArgs.h"
 #include "FBExport.h"
-//---------------------------------------------------------------------------
+
 Arguments::Arguments()
 {
     Operation = xopNone;
     Error = "OK";
 }
-//---------------------------------------------------------------------------
+
 Arguments::Arguments(int argc, char **argv)
 {
     Count = argc;
@@ -179,5 +179,5 @@ Arguments::Arguments(int argc, char **argv)
     if (Operation == xopNone)
         Error = "You must specify operation switch. (S, I, X or L).";
 }
-//---------------------------------------------------------------------------
+
 #pragma package(smart_init)
