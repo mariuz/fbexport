@@ -1502,5 +1502,3 @@ int FBExport::ExecuteSqlScript(IBPP::Statement& st, IBPP::Transaction &tr, FILE 
     }
     return result;
 }
-//------------------------------------------------------------------------------
-//  EOF

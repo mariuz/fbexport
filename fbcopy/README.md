@@ -8,7 +8,7 @@ Tool for copying and comparing data in Firebird databases
 *   Ability to compare data in databases
 *   Can disable triggers to avoid side-effects
 *   Understands foreign keys so order of copying is correct
-*   Can work in overwrite mode (UPDATE if INSERT fails) 
+*   Can work in overwrite mode (UPDATE if INSERT fails)
 *   Open source under Expat (a.k.a. MIT) license
 *   Now you can freely use any part of FBCopy code in your applications
 *   Read [HTML manual](fbcopy-manual.html) for usage instructions
@@ -40,7 +40,7 @@ There were no tools for this, so I decided to write one.
 **Restrictions**
 
 This tool uses [IBPP library](http://ibpp.sourceforge.net/)
-for database access. It supports Firebird 1.0, 1.5, 2.0 and InterBase 6
+for database access. It supports Firebird 1.0, 1.5, 2.0
 databases. If it works for you, please let me
 know. As IBPP project grows, I hope to support all database engines
 they do.
@@ -56,5 +56,3 @@ FBCopy is Free Software, released under Expat (a.k.a. MIT) license
 **Download**
 
 Latest version can be downloaded from [Firebird FAQ website](http://www.firebirdfaq.org/fbcopy.php).
-
-

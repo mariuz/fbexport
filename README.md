@@ -1,7 +1,7 @@
 fbexport
 ========
 
-FBExport is a tool for importing/exporting data and executing SQL statements on Firebird , FBCopy is a tool to copy and compare data accross Firebird databases. 
+FBExport is a tool for importing/exporting data and executing SQL statements on Firebird , FBCopy is a tool to copy and compare data accross Firebird databases.
 
 
 FBExport
