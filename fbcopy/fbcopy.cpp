@@ -87,6 +87,7 @@ int FBCopy::Run(Args *a)
         fprintf(stderr, "F  Fire triggers (default = temporary deactivate triggers)\n");
         fprintf(stderr, "N  Nulls - used with A. Doesn't put NOT NULL in ALTER TABLE statements\n");
         fprintf(stderr, "H  Html  - used with D, A, X. Outputs differences in HTML format\n");
+        fprintf(stderr, "L  Limited - if table doesn't have row to display - don't show the table\n");
         fprintf(stderr, "Options are not case-sensitive.\n\n");
 
         if (ar->Error != "Display help")
@@ -488,7 +489,7 @@ string createHumanString(IBPP::Statement& st, int col, bool& numeric)
             st->Get(col, d);
             if (IBPP::dtoi(d.GetDate(), &year, &month, &day))
             {
-                sprintf(str, "%02d.%02d.%02d", day, month, year%100);
+                sprintf(str, "%04d&#x2011;%02d&#x2011;%02d", year, month, day);
                 value = str;
             }
             break;
@@ -499,12 +500,11 @@ string createHumanString(IBPP::Statement& st, int col, bool& numeric)
             value = str;
             break;
         case IBPP::sdTimestamp:
-            /*
             st->Get(col, ts);
-            sprintf(str, "%02d.%02d.%02d %02d:%02d:%02d", day, month, year%100,
-                );
-            value = GetHumanTimestamp(ts);
-            */
+            IBPP::ttoi(ts.GetTime(), &hour, &minute, &second, &millisec);
+            IBPP::dtoi(ts.GetDate(), &year, &month, &day);
+            sprintf(str, "%04d&#x2011;%02d&#x2011;%02d&nbsp;%02d:%02d:%02d", year, month, day, hour, minute, second);
+            value = str;
             break;
         case IBPP::sdFloat:
             st->Get(col, &fval);
@@ -670,7 +670,7 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
     const std::string& where)
 {
     if (ar->Html && ar->DisplayDifferences)
-        printf("<TABLE border=0 bgcolor=black cellspacing=1 cellpadding=3>\n");
+        printf("<TABLE id=\"%s\" border=0 bgcolor=black cellspacing=1 cellpadding=3>\n", table.c_str());
 
     std::string pkcols;
     std::stringstream order;
@@ -680,9 +680,14 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
     {
         if (ar->Html)
         {
-            printf("<TR bgcolor=#FFBBBB><TD COLSPAN=5>Table %s doesn't have primary key. Skipping.</TD></TR>\n", table.c_str());
-            if (ar->DisplayDifferences)
-                printf("</TABLE><br><BR>\n");
+          printf("<TR bgcolor=#FFBBBB><TD COLSPAN=5>Table %s doesn't have primary key. Skipping.</TD></TR>\n", table.c_str());
+          if (ar->DisplayDifferences) {
+            if (ar->Limited) {
+              printf("</TABLE><SCRIPT>document.getElementById(\"%s\").style.display = \"none\"; </SCRIPT>\n", table.c_str());
+            } else {
+              printf("</TABLE><br><BR>\n");
+            }
+          }
         }
         else
             fprintf(stderr, "Table %s doesn't have primary key. Skipping.\n", table.c_str());
@@ -715,7 +720,7 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
         if (ar->DisplayDifferences)
         {
             printf("<TR><TD colspan=%d><font size=+1 color=white><B>%s</B></font></TD></TR>\n", st1->Columns(), table.c_str());
-            printf("<tr bgcolor=#666699\n");    // header
+            printf("<tr bgcolor=#666699>\n");    // header
             for (int i=pkcnt+1; i<=st1->Columns(); ++i)
                 printf("<td nowrap><font color=white>%s</font></td>", st1->ColumnName(i));
             printf("</tr>");
@@ -784,10 +789,23 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
 
     if (ar->Html)
     {
-        if (ar->DisplayDifferences)
-            printf("<TR bgcolor=black><TD nowrap><font color=white>Same: %d, Different: %d, Missing: %d, Extra: %d.</font></TD></TR>\n</TABLE>\n<BR><BR>",
+        if (ar->DisplayDifferences) {
+            printf("<TR bgcolor=black><TD nowrap><font color=white>Same: %d, Different: %d, Missing: %d, Extra: %d.</font></TD></TR>\n",
             same, different, missing, extra);
-        else
+            if (ar->Limited ) {
+               if (((ar->DisplayDifferences & Args::ShowMissing) && missing>0) ||
+                   ((ar->DisplayDifferences & Args::ShowExtra) && extra>0) ||
+                   ((ar->DisplayDifferences & Args::ShowCommon) && same>0) ||
+                   ((ar->DisplayDifferences & Args::ShowDifferent) && different>0)) {
+               printf("</TABLE>\n<BR><BR>");
+               } else {
+                 printf("</TABLE>\n<SCRIPT>document.getElementById(\"%s\").style.display = \"none\"; </SCRIPT>\n", table.c_str());
+               }
+
+            } else {
+               printf("</TABLE>\n<BR><BR>");
+            }
+        } else
             printf("<TD align=right>%d</TD><TD align=right>%d</TD><TD align=right>%d</TD><TD align=right>%d</TD></TR>\n",
             same, different, missing, extra);
     }
