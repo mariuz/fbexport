@@ -57,13 +57,12 @@
 
 #include "ParseArgs.h"
 #include "FBExport.h"
-//---------------------------------------------------------------------------------------
+
 // Converts IBPP::SDT to unsigned char (which will be written to file)
 unsigned char FBExport::SDT2uc(IBPP::SDT st)
 {
     return (unsigned char)(st);
 }
-//---------------------------------------------------------------------------------------
 // read blob data from database and Write to fbx file
 void FBExport::WriteBlob(FILE *fp, IBPP::Statement& st, int col)
 {
@@ -92,7 +91,7 @@ void FBExport::WriteBlob(FILE *fp, IBPP::Statement& st, int col)
     while (size > 0);
     b->Close();
 }
-//---------------------------------------------------------------------------------------
+
 // Read Blob from fbx file and insert into database
 int FBExport::ReadBlob(FILE *fp, IBPP::Statement& st, int col, bool needed )
 {
@@ -161,7 +160,6 @@ int FBExport::ReadBlob(FILE *fp, IBPP::Statement& st, int col, bool needed )
 
     return 0;
 }
-//---------------------------------------------------------------------------------------
 string FBExport::GetHumanDate(int year, int month, int day)
 {
     string value;
@@ -192,7 +190,6 @@ string FBExport::GetHumanDate(int year, int month, int day)
     }
     return value;
 }
-//---------------------------------------------------------------------------------------
 string FBExport::GetHumanTime(int hour, int minute, int second)
 {
     string value;
@@ -220,7 +217,6 @@ string FBExport::GetHumanTime(int hour, int minute, int second)
     }
     return value;
 }
-//---------------------------------------------------------------------------------------
 string FBExport::GetHumanTimestamp(IBPP::Timestamp ts)
 {
     int year, month, day, hour, minute, second;
@@ -233,7 +229,6 @@ string FBExport::GetHumanTimestamp(IBPP::Timestamp ts)
         value = " " + value;
     return GetHumanDate(year, month, day) + value;
 }
-//---------------------------------------------------------------------------------------
 void reScaleInt(std::string& s, int scale, int i)
 {
     // find the decimal point to determine the scale of input string
@@ -262,7 +257,6 @@ void reScaleInt(std::string& s, int scale, int i)
     while (needed-- > 0)
         s += "0";
 }
-//---------------------------------------------------------------------------------------
 void scaleInt(std::string& s, int scale)
 {
     if (scale == 0)
@@ -280,7 +274,7 @@ void scaleInt(std::string& s, int scale)
     }
     s.insert(s.length() - scale, ".");
 }
-//---------------------------------------------------------------------------------------
+
 string FBExport::CreateHumanString(IBPP::Statement& st, int col)
 {
     string value;
@@ -394,7 +388,6 @@ string FBExport::CreateHumanString(IBPP::Statement& st, int col)
 
     return value;
 }
-//---------------------------------------------------------------------------------------
 // sets the value to string that represents value of column "col"
 // returns false is value is null, true otherwise
 bool FBExport::CreateString(IBPP::Statement& st, int col, string &value)
@@ -472,7 +465,6 @@ bool FBExport::CreateString(IBPP::Statement& st, int col, string &value)
 
     return true;
 }
-//---------------------------------------------------------------------------------------
 // statement is prepared, just need to fetch all into file
 // returns: # of rows exported, -1 on error
 int FBExport::Export(IBPP::Statement& st, FILE *fp)
@@ -553,7 +545,6 @@ int FBExport::Export(IBPP::Statement& st, FILE *fp)
     Printf("Elapsed : %d seconds.\n",  (EndTime - StartTime));
     return ret;
 }
-//---------------------------------------------------------------------------------------
 // binds string value to ibpp statement parameter
 // ft variable is used to track datatype
 // i  is the index of parameter
@@ -637,7 +628,6 @@ void FBExport::StringToParam(string src, IBPP::Statement& st, int i, IBPP::SDT f
     }
 
 }
-//---------------------------------------------------------------------------------------
 // imports data from "file" into database using ibpp statement "st", and "sql" insert statement
 // returns number of rows inserted, or -1 if error
 int FBExport::Import(IBPP::Statement& st, FILE *fp)
@@ -808,7 +798,6 @@ int FBExport::Import(IBPP::Statement& st, FILE *fp)
 
     return ret;
 }
-//---------------------------------------------------------------------------------------
 std::string getAlign(IBPP::Statement& st, int col)
 {
     switch (st->ColumnType(col))
@@ -822,7 +811,6 @@ std::string getAlign(IBPP::Statement& st, int col)
     };
     return "";
 }
-//---------------------------------------------------------------------------------------
 // statement is prepared, just need to fetch all into file
 // returns: # of rows exported, -1 on error
 int FBExport::ExportHuman(IBPP::Statement& st, FILE *fp)
@@ -908,7 +896,6 @@ int FBExport::ExportHuman(IBPP::Statement& st, FILE *fp)
 
     return ret;
 }
-//---------------------------------------------------------------------------------------
 int FBExport::Init(Arguments *a)
 {
     ar = a;         // move to internal
@@ -925,7 +912,7 @@ int FBExport::Init(Arguments *a)
                     (IBPP::Version >> 16) % 256,
                     (IBPP::Version >> 8) % 256,
                     IBPP::Version % 256);
-        printf("Tool for importing/exporting data with Firebird and InterBase databases.\n");
+        printf("Tool for importing/exporting data with Firebird databases.\n");
         printf("Usage: fbexport -[S|Sc|Si|Sh|I|If|X|L] Options\n\n");
         printf(" -S  Select = output to file  (S - binary, Si - INSERTs, Sc - CSV, Sh - HTML)\n");
         printf(" -I  Insert = input from file\n");
@@ -1278,7 +1265,6 @@ int FBExport::Init(Arguments *a)
     return retval;
 }
 
-//---------------------------------------------------------------------------------------
 // Author: Istvan Matyasi
 //
 // Builds (incoming field position) -> (SQL parameter positions) map from ar->SQL.
@@ -1320,7 +1306,7 @@ void FBExport::BuildParamMap()
     }
 }
 
-//---------------------------------------------------------------------------------------
+
 // Author: Istvan Matyasi
 //
 // Replaces all occurrences of param number i of type ft with string src in statement st
@@ -1330,7 +1316,6 @@ void FBExport::StringToNumParams(string src, IBPP::Statement& st, int i, IBPP::S
         StringToParam (src, st, *j, ft);
 }
 
-//---------------------------------------------------------------------------------------
 int statement_length(FILE *fp)
 {
     int    c = 0, tmp = 0;
@@ -1371,7 +1356,7 @@ int statement_length(FILE *fp)
         return l;
     return (ferror (fp)) ? -1 : l;
 }
-//------------------------------------------------------------------------------
+
 char *read_statement(char *s, int n, FILE *fp)
 {
     int    c = 0, tmp = 0;
@@ -1411,7 +1396,7 @@ char *read_statement(char *s, int n, FILE *fp)
     *P = 0;
     return (ferror (fp)) ? NULL : s;
 }
-//------------------------------------------------------------------------------
+
 int FBExport::ExecuteSqlScript(IBPP::Statement& st, IBPP::Transaction &tr, FILE *fp)
 {
     int Errors = 0;
