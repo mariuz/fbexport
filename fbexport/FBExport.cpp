@@ -485,11 +485,11 @@ int FBExport::Export(IBPP::Statement& st, FILE *fp)
     fputc(0, fp);
     fputc(FBEXPORT_FILE_VERSION, fp);   // fbexport version
 
-    register int fc = st->Columns();
+    int fc = st->Columns();
 
     // writes number of fields and fields' data types
     fputc((unsigned char)(fc), fp);
-    for (register int i=1; i<=fc; i++)
+    for (int i=1; i<=fc; i++)
     {
         IBPP::SDT DataType = st->ColumnType(i);
         if (DataType == IBPP::sdDate && Dialect == 1)
@@ -503,7 +503,7 @@ int FBExport::Export(IBPP::Statement& st, FILE *fp)
     while (st->Fetch())
     {
         CurrentData = "";
-        for (register int i=1; i<=fc; i++)   // ... export all fields to file.
+        for (int i=1; i<=fc; i++)   // ... export all fields to file.
         {
             // if it's a BLOB, use different technique (since BLOBs can be really big!)
             if (st->ColumnType(i) == IBPP::sdBlob)
@@ -827,13 +827,13 @@ std::string getAlign(IBPP::Statement& st, int col)
 // returns: # of rows exported, -1 on error
 int FBExport::ExportHuman(IBPP::Statement& st, FILE *fp)
 {
-    register int fc = st->Columns();
+    int fc = st->Columns();
 
     string prefix, suffix;
     if (ar->ExportFormat == xefCSV)
     {
         Printf("Exporting data in CSV format...\n");
-        for (register int i=1; i<=fc; i++)   // output CSV header.
+        for (int i=1; i<=fc; i++)   // output CSV header.
         {
             if (i > 1)
                 fprintf(fp, "%s", ar->Separator.c_str());
@@ -845,7 +845,7 @@ int FBExport::ExportHuman(IBPP::Statement& st, FILE *fp)
     {
         Printf("Exporting data as INSERT statements...\n");
         string column_list;
-        for (register int i=1; i<=fc; i++)   // ... export all fields to file.
+        for (int i=1; i<=fc; i++)   // ... export all fields to file.
         {
             if (i > 1)
                 column_list += ",";
@@ -858,7 +858,7 @@ int FBExport::ExportHuman(IBPP::Statement& st, FILE *fp)
     {
         Printf("Exporting data as HTML statements...\n");
         fprintf(fp, "<HTML><BODY bgcolor=white><TABLE bgcolor=black cellspacing=1 cellpadding=3 border=0><tr bgcolor=white>\n");
-        for (register int i=1; i<=fc; i++)   // output CSV header.
+        for (int i=1; i<=fc; i++)   // output CSV header.
             fprintf(fp, "<td><b>%s</b></td>", st->ColumnAlias(i));
         fprintf(fp, "</tr>\n");
         prefix = "<tr bgcolor=white>";
@@ -873,7 +873,7 @@ int FBExport::ExportHuman(IBPP::Statement& st, FILE *fp)
     while (st->Fetch())
     {
         fprintf(fp, "%s", prefix.c_str());
-        for (register int i=1; i<=fc; i++)   // ... export all fields to file.
+        for (int i=1; i<=fc; i++)   // ... export all fields to file.
         {
             if (ar->ExportFormat == xefHTML)
                 fprintf(fp, "<td%s>%s</td>", getAlign(st, i).c_str(), CreateHumanString(st, i).c_str());
@@ -1333,8 +1333,8 @@ void FBExport::StringToNumParams(string src, IBPP::Statement& st, int i, IBPP::S
 //---------------------------------------------------------------------------------------
 int statement_length(FILE *fp)
 {
-    register    int    c = 0, tmp = 0;
-    register    int    l = 0;
+    int    c = 0, tmp = 0;
+    int    l = 0;
     fpos_t pos;
     fgetpos(fp, &pos);
     bool comments = false;
@@ -1374,8 +1374,8 @@ int statement_length(FILE *fp)
 //------------------------------------------------------------------------------
 char *read_statement(char *s, int n, FILE *fp)
 {
-    register    int    c = 0, tmp = 0;
-    register    char   *P;
+    int    c = 0, tmp = 0;
+    char   *P;
     P = s;
     bool comments = false;
     bool comments_over = false;
