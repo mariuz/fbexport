@@ -41,7 +41,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "args.h"
 #include "fbcopy.h"
-//---------------------------------------------------------------------------------------
 int __cdecl main(int argc, char* argv[])
 {
     if (! IBPP::CheckVersion(IBPP::Version))
@@ -55,4 +54,3 @@ int __cdecl main(int argc, char* argv[])
     FBCopy F;
     return F.Run(&ar);  // Init() is used since ctor can't return values
 }
-//---------------------------------------------------------------------------------------
