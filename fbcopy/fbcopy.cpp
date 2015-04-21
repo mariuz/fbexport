@@ -52,7 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "args.h"
 #include "fbcopy.h"
-//---------------------------------------------------------------------------------------
+
 int FBCopy::Run(Args *a)
 {
     ar = a;         // move to internal
@@ -137,7 +137,7 @@ int FBCopy::Run(Args *a)
     enableTriggers();
     return retval;
 }
-//---------------------------------------------------------------------------------------
+
 void FBCopy::disableTriggers()
 {
     if (ar->FireTriggers || ar->Operation != opCopy && ar->Operation != opSingle)
@@ -168,7 +168,7 @@ void FBCopy::disableTriggers()
     tr1->Commit();
     fprintf(stderr, "done.\n");
 }
-//---------------------------------------------------------------------------------------
+
 void FBCopy::enableTriggers()
 {
     if (ar->FireTriggers || ar->Operation != opCopy && ar->Operation != opSingle || triggers.empty())
@@ -207,7 +207,7 @@ void FBCopy::enableTriggers()
             printf("ALTER TRIGGER %s ACTIVE;\n", (*it).c_str());
     }
 }
-//---------------------------------------------------------------------------------------
+
 std::vector<std::string> FBCopy::explode(const std::string& sep, const std::string& ins)
 {
     std::vector<std::string> v;
@@ -224,7 +224,7 @@ std::vector<std::string> FBCopy::explode(const std::string& sep, const std::stri
     }
     return v;
 }
-//---------------------------------------------------------------------------------------
+
 std::string FBCopy::getUpdateStatement(const std::string& table, const std::string& fields,
     std::set<std::string>& pkcols)
 {
@@ -251,7 +251,7 @@ std::string FBCopy::getUpdateStatement(const std::string& table, const std::stri
         " WHERE " + join(pkpairs, "", " and ");
     return retval;
 }
-//---------------------------------------------------------------------------------------
+
 void FBCopy::setupFromStdin(CompareOrCopy action)
 {
     if (action == ccCompareData)
@@ -414,7 +414,7 @@ void FBCopy::setupFromStdin(CompareOrCopy action)
         printf("</TABLE>\n<BR></BODY>\n</HTML>\n");
     }
 }
-//---------------------------------------------------------------------------------------
+
 std::string FBCopy::params(const std::string& fieldlist)
 {
     int cnt = 0;
@@ -430,7 +430,7 @@ std::string FBCopy::params(const std::string& fieldlist)
     }
     return retval;
 }
-//---------------------------------------------------------------------------------------
+
 std::string nl2br(const std::string &input)
 {
     std::string s(input);
@@ -438,7 +438,7 @@ std::string nl2br(const std::string &input)
         s.replace(s.find("\n"), 1, "<BR>");
     return s;
 }
-//---------------------------------------------------------------------------------------
+
 void scaleInt(std::string& s, unsigned int scale)
 {
     if (scale == 0)
@@ -447,7 +447,7 @@ void scaleInt(std::string& s, unsigned int scale)
         s = "0" + s;
     s.insert(s.length() - scale, ".");
 }
-//---------------------------------------------------------------------------------------
+
 string createHumanString(IBPP::Statement& st, int col, bool& numeric)
 {
     numeric = false;
@@ -532,7 +532,7 @@ string createHumanString(IBPP::Statement& st, int col, bool& numeric)
     };
     return value;
 }
-//---------------------------------------------------------------------------------------
+
 void FBCopy::addRow(int& counter, int type, IBPP::Statement st1, int index,
     IBPP::Statement *st2)
 {
@@ -583,7 +583,7 @@ void FBCopy::addRow(int& counter, int type, IBPP::Statement st1, int index,
         }
     }
 }
-//---------------------------------------------------------------------------------------
+
 void FBCopy::copyGeneratorValues(const std::string& gfrom, const std::string& gto)
 {
     IBPP::Transaction tr1 = IBPP::TransactionFactory(src, IBPP::amRead);
@@ -605,7 +605,7 @@ void FBCopy::copyGeneratorValues(const std::string& gfrom, const std::string& gt
     st2->Execute();
     tr1->Commit();
 }
-//---------------------------------------------------------------------------------------
+
 void FBCopy::compareGeneratorValues(const std::string& gfrom, const std::string& gto)
 {
     IBPP::Transaction tr1 = IBPP::TransactionFactory(src, IBPP::amRead);
@@ -632,7 +632,7 @@ void FBCopy::compareGeneratorValues(const std::string& gfrom, const std::string&
         printf("%-32s%9s%9s\n", gfrom.c_str(), tbuf1, tbuf2);
     }
 }
-//---------------------------------------------------------------------------------------
+
 int FBCopy::getPkInfo(const std::string& table, std::string& pkcols,
     std::stringstream& order)
 {
@@ -665,7 +665,7 @@ int FBCopy::getPkInfo(const std::string& table, std::string& pkcols,
     }
     return pkcnt;
 }
-//---------------------------------------------------------------------------------------
+
 void FBCopy::compareData(const std::string& table, const std::string& fields,
     const std::string& where)
 {
@@ -812,7 +812,7 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
     else
         printf("%9d%9d%9d%9d\n", same, different, missing, extra);
 }
-//---------------------------------------------------------------------------------------
+
 int FBCopy::compareGenerators(IBPP::Transaction tr1, IBPP::Transaction tr2)
 {
     fprintf(stderr, "Loading list of generators...\n");
@@ -846,7 +846,7 @@ int FBCopy::compareGenerators(IBPP::Transaction tr1, IBPP::Transaction tr2)
     }
     return cnt;
 }
-//---------------------------------------------------------------------------------------
+
 void FBCopy::compare()
 {
     fprintf(stderr, "Loading list of tables...\n");
@@ -924,7 +924,7 @@ void FBCopy::compare()
     tr1->Commit();
     tr2->Commit();
 }
-//---------------------------------------------------------------------------------------
+
 std::string FBCopy::getDatatype(IBPP::Statement& st1, std::string table, std::string fieldname, bool not_nulls)
 {
     st1->Set(1, table);
@@ -1010,7 +1010,7 @@ std::string FBCopy::getDatatype(IBPP::Statement& st1, std::string table, std::st
     retval << null_flag;
     return retval.str();
 }
-//---------------------------------------------------------------------------------------
+
 std::string FBCopy::join(const std::set<std::string>& s, const std::string& qualifier,
     const std::string& glue)
 {
@@ -1021,7 +1021,7 @@ std::string FBCopy::join(const std::set<std::string>& s, const std::string& qual
         ret.erase(0, glue.length());    // remove initial ","
     return ret;
 }
-//---------------------------------------------------------------------------------------
+
 int FBCopy::getPkIndex(IBPP::Statement& st1, int i, std::set<std::string>&pkcols)
 {
     int col = st1->Columns();
@@ -1033,7 +1033,7 @@ int FBCopy::getPkIndex(IBPP::Statement& st1, int i, std::set<std::string>&pkcols
     }
     return -1;
 }
-//---------------------------------------------------------------------------------------
+
 bool FBCopy::copy(const std::string& select, const std::string& insert,
     const std::string& update, std::set<std::string>& pkcols)
 {
@@ -1169,7 +1169,7 @@ bool FBCopy::copy(const std::string& select, const std::string& insert,
     printf(".\n");
     return true;
 }
-//---------------------------------------------------------------------------------------
+
 template<typename T>
 int cmpval(const T& one, const T& two)
 {
@@ -1180,7 +1180,7 @@ int cmpval(const T& one, const T& two)
     else
         return 1;
 }
-//---------------------------------------------------------------------------------------
+
 // returns zero if same, -1 if src<dest and +1 if src>dest
 int FBCopy::cmpData(IBPP::Statement& st1, IBPP::Statement& st2, int col)
 {
@@ -1255,7 +1255,7 @@ int FBCopy::cmpData(IBPP::Statement& st1, IBPP::Statement& st2, int col)
             return 0;
     };
 }
-//---------------------------------------------------------------------------------------
+
 bool FBCopy::copyData(IBPP::Statement& st1, IBPP::Statement& st2, int srccol,
     int destcol)
 {
@@ -1336,7 +1336,7 @@ bool FBCopy::copyData(IBPP::Statement& st1, IBPP::Statement& st2, int srccol,
 
     return false;
 }
-//---------------------------------------------------------------------------------------
+
 bool FBCopy::copyBlob(IBPP::Statement& st1, IBPP::Statement& st2, int col)
 {
     IBPP::Blob b1 = IBPP::BlobFactory(st1->DatabasePtr(), st1->TransactionPtr());
@@ -1358,7 +1358,7 @@ bool FBCopy::copyBlob(IBPP::Statement& st1, IBPP::Statement& st2, int col)
     st2->Set(col, b2);
     return true;
 }
-//---------------------------------------------------------------------------------------
+
 bool FBCopy::connect(IBPP::Database& db1, DatabaseInfo d)
 {
     try
@@ -1414,9 +1414,9 @@ bool FBCopy::connect(IBPP::Database& db1, DatabaseInfo d)
     }
     return true;
 }
-//---------------------------------------------------------------------------------------
+
 // Improved dependency sorting functions, by Thiago Borges...
-//---------------------------------------------------------------------------------------
+
 void FBCopy::addDeps(std::list<std::string>& deps, const std::string& table, IBPP::Statement& st)
 {
     st->Set(1, table);
@@ -1432,7 +1432,7 @@ void FBCopy::addDeps(std::list<std::string>& deps, const std::string& table, IBP
             deps.push_back(s);
     }
 }
-//---------------------------------------------------------------------------------------
+
 // foreign keys + check_constraints
 void FBCopy::getDependencies(TableDependency* dep, std::string ntable)
 {
@@ -1453,7 +1453,7 @@ void FBCopy::getDependencies(TableDependency* dep, std::string ntable)
         }
     }
 }
-//---------------------------------------------------------------------------------------
+
 void FBCopy::setDependencies(std::list<std::string> tableList)
 {
     /* root node */
@@ -1491,7 +1491,7 @@ void FBCopy::setDependencies(std::list<std::string> tableList)
         }
     }
 }
-//---------------------------------------------------------------------------------------
+
 void FBCopy::preOrder(TableDependency* a, IBPP::Statement& st1, IBPP::Statement& st2, IBPP::Transaction& tr1)
 {
     for (std::list<TableDependency *>::iterator tmp = a->dependencies.begin(); tmp != a->dependencies.end(); ++tmp)
@@ -1500,9 +1500,9 @@ void FBCopy::preOrder(TableDependency* a, IBPP::Statement& st1, IBPP::Statement&
     if (a->tableName != "root")
         compareTable(a->tableName, st1, st2, tr1);
 }
-//---------------------------------------------------------------------------------------
+
 // moved from old compare function
-//---------------------------------------------------------------------------------------
+
 void FBCopy::compareTable(std::string table, IBPP::Statement& st1, IBPP::Statement& st2, IBPP::Transaction& tr1)
 {
     std::set<std::string> srcfields, destfields;
@@ -1641,5 +1641,3 @@ void FBCopy::compareTable(std::string table, IBPP::Statement& st1, IBPP::Stateme
         }
     }
 }
-//---------------------------------------------------------------------------------------
-//  EOF
