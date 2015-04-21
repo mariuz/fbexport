@@ -36,7 +36,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "args.h"
 #include "ibpp.h"
 
-//---------------------------------------------------------------------------
+
 class FBCopy
 {
 private:
@@ -84,6 +84,6 @@ private:
 public:
     int Run(Args *a);
 };
-//---------------------------------------------------------------------------
+
 #endif
 

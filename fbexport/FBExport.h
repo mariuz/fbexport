@@ -39,21 +39,21 @@
 #include <set>
 #include <string>
 
-//---------------------------------------------------------------------------
+
 class DataFormatException: public std::exception
 {
 private:
     std::string messageM;
 public:
     DataFormatException(const std::string& msg) 
-    : messageM(msg) {};
-    virtual ~DataFormatException() throw() {};
+    : messageM(msg) {}
+    virtual ~DataFormatException() throw() {}
     virtual const char* what() const throw()
     {
         return messageM.c_str();
     }
 };
-//---------------------------------------------------------------------------
+
 class FBExport
 {
 private:
@@ -93,6 +93,6 @@ public:
     void *GUI;              // placeholder, GUI uses it, CLI version ignores it
     int Init(Arguments *a);
 };
-//---------------------------------------------------------------------------
+
 #endif
 

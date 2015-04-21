@@ -33,7 +33,7 @@
 //  Contributor(s): ______________________________________.
 //
 ///////////////////////////////////////////////////////////////////////////////
-//---------------------------------------------------------------------------
+
 #ifndef ParseArgsH
 #define ParseArgsH
 
@@ -45,7 +45,7 @@
 typedef enum { xopInsertFull, xopInsertUpdate, xopInsert, xopSelect, xopExec,
     xopListUsers, xopNone } XOperation;
 typedef enum { xefDefault, xefCSV, xefInserts, xefHTML  } XExportFormat;
-//----------------------------------------------------------------------------
+
 class Arguments
 {
 private:
@@ -77,5 +77,5 @@ public:
     Arguments();                        // GUI uses this
     Arguments(int argc, char **argv);   // CLI uses this
 };
-//----------------------------------------------------------------------------
+
 #endif

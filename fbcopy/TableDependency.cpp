@@ -35,37 +35,37 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdio.h>
 
 using namespace std;
-//---------------------------------------------------------------------------------------
+
 TableDependency::TableDependency()
 {
 }
-//---------------------------------------------------------------------------------------
+
 TableDependency::TableDependency(std::string name)
 {
     tableName = name;
 }
-//---------------------------------------------------------------------------------------
+
 TableDependency::~TableDependency()
 {
     for (std::list<TableDependency *>::iterator it = dependencies.begin(); it != dependencies.end(); ++it)
         delete (*it);
 }
-//---------------------------------------------------------------------------------------
+
 bool TableDependency::operator == (const TableDependency a) const
 {
     return (tableName == a.tableName);
 }
-//---------------------------------------------------------------------------------------
+
 bool TableDependency:: operator > (const TableDependency a) const
 {
     return (a.tableName < tableName);
 }
-//---------------------------------------------------------------------------------------
+
 bool TableDependency:: operator < (const TableDependency a) const
 {
     return (a.tableName > tableName);
 }
-//---------------------------------------------------------------------------------------
+
 bool TableDependency::existsInTree(TableDependency* a, const string ntable) const
 {
     bool resultado = false;
@@ -83,7 +83,7 @@ bool TableDependency::existsInTree(TableDependency* a, const string ntable) cons
     }
     return resultado;
 }
-//---------------------------------------------------------------------------------------
+
 void TableDependency::printTree(TableDependency* a, int nivel) const
 {
     for(int aux = nivel; aux > 0; aux--)
@@ -92,4 +92,4 @@ void TableDependency::printTree(TableDependency* a, int nivel) const
     for (std::list<TableDependency *>::iterator tmp = a->dependencies.begin(); tmp != a->dependencies.end(); ++tmp)
         printTree(*tmp, nivel + 2);
 }
-//---------------------------------------------------------------------------------------
+

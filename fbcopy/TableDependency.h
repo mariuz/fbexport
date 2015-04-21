@@ -36,7 +36,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <list>
 #include <string>
-//---------------------------------------------------------------------------------------
+
 class TableDependency
 {
 private:
@@ -53,5 +53,5 @@ public:
     bool existsInTree(TableDependency* a, const std::string ntable) const;
     void printTree(TableDependency* a, int nivel = 0) const;
 };
-//---------------------------------------------------------------------------------------
+
 #endif
