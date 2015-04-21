@@ -507,14 +507,14 @@ string createHumanString(IBPP::Statement& st, int col, bool& numeric)
             value = str;
             break;
         case IBPP::sdFloat:
-            st->Get(col, &fval);
-            gcvt(fval, 19, str);
+            st->Get(col, &fval);            
+            snprintf(str,30,"%19g",fval);
             value = str;
             numeric = true;
             break;
         case IBPP::sdDouble:
             st->Get(col, &dval);
-            gcvt(dval, 19, str);
+            snprintf(str,30,"%19g",dval);
             value = str;
             numeric = true;
             break;

@@ -443,12 +443,12 @@ bool FBExport::CreateString(IBPP::Statement& st, int col, string &value)
             return true;
         case IBPP::sdFloat:
             st->Get(col, &fval);
-            gcvt(fval, 19, str);
+            snprintf(str,30,"%19g",fval);
             value = str;
             return true;
         case IBPP::sdDouble:
-            st->Get(col, &dval);
-            gcvt(dval, 19, str);
+            st->Get(col, &dval);            
+            snprintf(str,30,"%19g",dval);
             value = str;
             return true;
         case IBPP::sdLargeint:
