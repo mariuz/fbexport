@@ -832,7 +832,14 @@ int FBCopy::compareGenerators(IBPP::Transaction tr1, IBPP::Transaction tr2)
         st2->Set(1, s);
         st2->Execute();
         bool has = st2->Fetch();
-        if (ar->Html)
+        if (ar->Operation == opSingle) 
+        {
+            if(has) 
+            {
+                copyGeneratorValues(s.c_str(), s.c_str());
+            }
+        }
+        else if (ar->Html)
         {
             static int color = 0;
             printf("<TR BGCOLOR=%s><TD COLSPAN=4>%s</TD></TR>\n",
