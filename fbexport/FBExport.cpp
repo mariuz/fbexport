@@ -54,6 +54,7 @@
 
 #include <string>
 #include <cstring>
+#include <sstream>
 
 #include "ParseArgs.h"
 #include "FBExport.h"
@@ -372,18 +373,25 @@ string FBExport::CreateHumanString(IBPP::Statement& st, int col)
 
     if (ar->ExportFormat == xefInserts && !numeric)
     {
-        string::size_type pos = string::npos;
-        while (true)
-        {
-            pos = value.find_last_of('\'', pos);
-            if (pos == string::npos)
-                break;
-            value.insert(pos, 1, '\'');
-            if (pos == 0)
-                break;
-            pos--;
+        stringstream stringBuilder;
+        stringBuilder << '\'';
+        for (int i=0; i<value.size(); i++) {
+            char next_char = value.c_str()[i];
+
+            if(next_char == '\0') {
+                stringBuilder << "\\0";
+            } else if(next_char == '\n') {
+                stringBuilder << "\\n";
+            } else if(next_char == '\\') {
+                stringBuilder << "\\\\";
+            } else if(next_char == '\'') {
+                stringBuilder << "''";
+            } else {
+                stringBuilder << next_char;
+            }
         }
-        value = "'" + value + "'";      // INSERTs, use single quotes for non-numeric values
+        stringBuilder << '\'';
+        return stringBuilder.str();
     }
 
     return value;
