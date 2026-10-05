@@ -26,7 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef FBCopyH
 #define FBCopyH
 
-#define FBCOPY_VERSION "1.91"
+#define FBCOPY_VERSION "1.92"
 #include <set>
 #include <vector>
 #include <list>
@@ -40,6 +40,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 class FBCopy
 {
 private:
+    std::vector<std::string> dropFKstatements;
+    std::vector<std::string> addFKstatements;
     std::vector<std::string> triggers;
     IBPP::Database src, dest;
     IBPP::Statement stDepsFK, stDepsCheck;
@@ -49,6 +51,8 @@ private:
 
     void disableTriggers();
     void enableTriggers();
+	void dropAllForeignKeys();
+    void recreateAllForeignKeys();
     bool connect(IBPP::Database& db1, DatabaseInfo d);
     bool copy(const std::string& select, const std::string& insert,
         const std::string& update, std::set<std::string>& pkcols);

@@ -102,7 +102,7 @@ int FBCopy::Run(Args *a)
     try
     {
         disableTriggers();
-        dropSelfReferencingForeignKey();
+        dropAllForeignKeys();
         trans1 = IBPP::TransactionFactory(src,  IBPP::amRead);
         trans2 = IBPP::TransactionFactory(dest, IBPP::amWrite);
         if (ar->SingleTransaction)
@@ -136,7 +136,7 @@ int FBCopy::Run(Args *a)
         retval = 4;
     }
     enableTriggers();
-    recreateSelfReferencingForeignKey();
+    recreateAllForeignKeys();
     return retval;
 }
 
@@ -210,43 +210,42 @@ void FBCopy::enableTriggers()
     }
 }
 
-void FBCopy::dropSelfReferencingForeignKey()
+void FBCopy::dropAllForeignKeys()
 {
     if (ar->FireTriggers || ar->Operation != opCopy && ar->Operation != opSingle)
         return;
 
-    fprintf(stderr, "Dropping self referencing foreign key...");
+    fprintf(stderr, "Dropping all foreign keys...");
     IBPP::Transaction tr1 = IBPP::TransactionFactory(dest);
     tr1->Start();
     IBPP::Statement st1 = IBPP::StatementFactory(dest, tr1);
     st1->Prepare(
         "SELECT "
-        "'ALTER TABLE ' || TRIM(detail_relation_constraints.rdb$relation_name) || ' DROP CONSTRAINT ' || trim(rdb$ref_constraints.RDB$CONSTRAINT_NAME), "
-        "'ALTER TABLE ' || TRIM(detail_relation_constraints.rdb$relation_name) || ' ADD CONSTRAINT ' || trim(rdb$ref_constraints.RDB$CONSTRAINT_NAME) "
-        "|| ' FOREIGN KEY(' || TRIM(detail_index_segments.rdb$field_name) "
-        "|| ') REFERENCES ' || TRIM(detail_relation_constraints.rdb$relation_name) || ' (' || TRIM(master_index_segments.rdb$field_name) || ')' "
-        "|| CASE WHEN TRIM(rdb$ref_constraints.RDB$DELETE_RULE) <> 'RESTRICT' THEN ' ON DELETE ' || TRIM(rdb$ref_constraints.RDB$DELETE_RULE) ELSE '' END "
-        "|| CASE WHEN TRIM(rdb$ref_constraints.RDB$UPDATE_RULE) <> 'RESTRICT' THEN ' ON UPDATE ' || TRIM(rdb$ref_constraints.RDB$UPDATE_RULE) ELSE '' END "
-        "FROM "
-        "rdb$relation_constraints detail_relation_constraints "
-        "JOIN rdb$index_segments detail_index_segments ON detail_relation_constraints.rdb$index_name = detail_index_segments.rdb$index_name "
-        "JOIN rdb$ref_constraints ON detail_relation_constraints.rdb$constraint_name = rdb$ref_constraints.rdb$constraint_name  "
-        "JOIN rdb$relation_constraints master_relation_constraints ON rdb$ref_constraints.rdb$const_name_uq = master_relation_constraints.rdb$constraint_name "
-        "JOIN rdb$index_segments master_index_segments ON master_relation_constraints.rdb$index_name = master_index_segments.rdb$index_name "
-        "WHERE "
-        "detail_relation_constraints.rdb$constraint_type = 'FOREIGN KEY' "
-        "AND detail_relation_constraints.rdb$relation_name = master_relation_constraints.rdb$relation_name"
+		"'ALTER TABLE ' || TRIM(detail_relation_constraints.rdb$relation_name) || ' DROP CONSTRAINT ' || TRIM(rdb$ref_constraints.rdb$constraint_name), "
+		"'ALTER TABLE ' || TRIM(detail_relation_constraints.rdb$relation_name) || ' ADD CONSTRAINT ' || TRIM(rdb$ref_constraints.rdb$constraint_name) "
+		"|| ' FOREIGN KEY(' ||  "
+		"(SELECT LIST(TRIM(rdb$field_name), ', ') FROM rdb$index_segments WHERE rdb$index_name = detail_relation_constraints.rdb$index_name) "
+		"|| ') REFERENCES ' || TRIM(master_relation_constraints.rdb$relation_name) || ' (' ||  "
+		"(SELECT LIST(TRIM(rdb$field_name), ', ') FROM rdb$index_segments WHERE rdb$index_name = master_relation_constraints.rdb$index_name ) "
+		"|| ')'  "
+		"|| CASE WHEN TRIM(rdb$ref_constraints.rdb$delete_rule) <> 'RESTRICT' THEN ' ON DELETE ' || TRIM(rdb$ref_constraints.rdb$delete_rule) ELSE '' END "
+		"|| CASE WHEN TRIM(rdb$ref_constraints.rdb$update_rule) <> 'RESTRICT' THEN ' ON UPDATE ' || TRIM(rdb$ref_constraints.rdb$update_rule) ELSE '' END "
+		"FROM rdb$relation_constraints detail_relation_constraints  "
+		"JOIN rdb$ref_constraints ON detail_relation_constraints.rdb$constraint_name = rdb$ref_constraints.rdb$constraint_name "
+		"JOIN rdb$relation_constraints master_relation_constraints ON rdb$ref_constraints.rdb$const_name_uq = master_relation_constraints.rdb$constraint_name "
+		"WHERE "
+		"detail_relation_constraints.rdb$constraint_type = 'FOREIGN KEY' "		
     );
     st1->Execute();
     while (st1->Fetch())
     {
         std::string s;
         st1->Get(1, s);
-        selfReferencingFK1.push_back(s);
+        dropFKstatements.push_back(s);
         st1->Get(2, s);
-        selfReferencingFK2.push_back(s);
+        addFKstatements.push_back(s);
     }
-    for (std::vector<std::string>::const_iterator it = selfReferencingFK1.begin(); it!=selfReferencingFK1.end(); ++it)
+    for (std::vector<std::string>::const_iterator it = dropFKstatements.begin(); it!=dropFKstatements.end(); ++it)
     {
         st1->Prepare((*it));
         st1->Execute();
@@ -255,19 +254,19 @@ void FBCopy::dropSelfReferencingForeignKey()
     fprintf(stderr, "done.\n");
 }
 
-void FBCopy::recreateSelfReferencingForeignKey()
+void FBCopy::recreateAllForeignKeys()
 {
-    if (ar->FireTriggers || ar->Operation != opCopy && ar->Operation != opSingle || triggers.empty())
+    if (ar->FireTriggers || ar->Operation != opCopy && ar->Operation != opSingle)
         return;
 
-    fprintf(stderr, "Recreating self referencing foreign key...");
+    fprintf(stderr, "Recreating all foreign keys...");
     bool ok = false;
     try
     {
         IBPP::Transaction tr1 = IBPP::TransactionFactory(dest);
         tr1->Start();
         IBPP::Statement st1 = IBPP::StatementFactory(dest, tr1);
-        for (std::vector<std::string>::const_iterator it = selfReferencingFK2.begin(); it!=selfReferencingFK2.end(); ++it)
+        for (std::vector<std::string>::const_iterator it = addFKstatements.begin(); it!=addFKstatements.end(); ++it)
         {
             st1->Prepare((*it));
             st1->Execute();
@@ -288,8 +287,8 @@ void FBCopy::recreateSelfReferencingForeignKey()
 
     if (!ok)
     {
-        fprintf(stderr, "\nSelf referencing foreign keys could not get recreated! Please run the following statements manually:\n");
-        for (std::vector<std::string>::const_iterator it = selfReferencingFK2.begin(); it!=selfReferencingFK2.end(); ++it)
+        fprintf(stderr, "\nForeign keys could not get recreated! Please run the following statements manually:\n");
+        for (std::vector<std::string>::const_iterator it = addFKstatements.begin(); it!=addFKstatements.end(); ++it)
             fprintf(stderr, "%s;\n", (*it).c_str());
     }
 }
@@ -824,56 +823,92 @@ void FBCopy::compareData(const std::string& table, const std::string& fields,
     bool wasmissing = false;
     bool wasextra = false;
     bool st2has = true;
-    while (wasextra || st1->Fetch())
+
+    try
     {
-        if (!wasmissing && !st2->Fetch())  // the end
+        while (wasextra || st1->Fetch())
         {
-            st2has = false;
-            addRow(missing, Args::ShowMissing, st1, pkcnt);
-            while (st1->Fetch())
+            if (!wasmissing && !st2->Fetch())  // the end
+            {
+                st2has = false;
                 addRow(missing, Args::ShowMissing, st1, pkcnt);
-            break;
-        }
-
-        // compare data
-        wasmissing = wasextra = false;
-        for (int col=0; col < pkcnt; ++col)
-        {
-            int res = cmpData(st1, st2, col+1);
-            if (res < 0)    // src < dest
-            {
-                addRow(missing, Args::ShowMissing, st1, pkcnt);
-                wasmissing = true;
+                while (st1->Fetch())
+                    addRow(missing, Args::ShowMissing, st1, pkcnt);
                 break;
             }
-            else if (res > 0)    // src > dest
-            {
-                addRow(extra, Args::ShowExtra, st2, pkcnt);
-                wasextra = true;
-                break;
-            }
-        }
-        if (wasmissing || wasextra)
-            continue;
 
-        // same PK, check other records
-        bool wasdifferent = false;
-        for (int col=pkcnt; col < st1->Columns(); ++col)
-        {
-            if (cmpData(st1, st2, col+1) != 0)  // differs
+            // compare data (PK columns)
+            wasmissing = wasextra = false;
+            for (int col=0; col < pkcnt; ++col)
             {
-                addRow(different, Args::ShowDifferent, st1, pkcnt, &st2);
-                wasdifferent = true;
-                break;
+                int res = 0;
+                try
+                {
+                    res = cmpData(st1, st2, col+1);
+                }
+                catch (IBPP::Exception& e)
+                {
+                    fprintf(stderr, "\n[ERROR in PK Compare] Table: %s | Col Index: %d | Col Name Src: %s | Col Name Dest: %s\n",
+                            table.c_str(), col+1, st1->ColumnName(col+1), st2->ColumnName(col+1));
+                    fprintf(stderr, "Type Src: %d | Type Dest: %d\n", st1->ColumnType(col+1), st2->ColumnType(col+1));
+                    fprintf(stderr, "IBPP Error: %s\n", e.ErrorMessage());
+                    throw;
+                }
+
+                if (res < 0)    // src < dest
+                {
+                    addRow(missing, Args::ShowMissing, st1, pkcnt);
+                    wasmissing = true;
+                    break;
+                }
+                else if (res > 0)    // src > dest
+                {
+                    addRow(extra, Args::ShowExtra, st2, pkcnt);
+                    wasextra = true;
+                    break;
+                }
             }
+            if (wasmissing || wasextra)
+                continue;
+
+            // same PK, check other fields
+            bool wasdifferent = false;
+            for (int col=pkcnt; col < st1->Columns(); ++col)
+            {
+                int res = 0;
+                try
+                {
+                    res = cmpData(st1, st2, col+1);
+                }
+                catch (IBPP::Exception& e)
+                {
+                    fprintf(stderr, "\n[ERROR in Data Compare] Table: %s | Col Index: %d | Col Name Src: %s | Col Name Dest: %s\n",
+                            table.c_str(), col+1, st1->ColumnName(col+1), st2->ColumnName(col+1));
+                    fprintf(stderr, "Type Src: %d | Type Dest: %d\n", st1->ColumnType(col+1), st2->ColumnType(col+1));
+                    fprintf(stderr, "IBPP Error: %s\n", e.ErrorMessage());
+                    throw;
+                }
+
+                if (res != 0)  // differs
+                {
+                    addRow(different, Args::ShowDifferent, st1, pkcnt, &st2);
+                    wasdifferent = true;
+                    break;
+                }
+            }
+
+            if (!wasdifferent)
+                addRow(same, Args::ShowCommon, st1, pkcnt);
         }
 
-        if (!wasdifferent)
-            addRow(same, Args::ShowCommon, st1, pkcnt);
+        while (st2has && st2->Fetch())
+            addRow(extra, Args::ShowExtra, st2, pkcnt);
     }
-
-    while (st2has && st2->Fetch())
-        addRow(extra, Args::ShowExtra, st2, pkcnt);
+    catch (IBPP::Exception& e)
+    {
+        fprintf(stderr, "\n[CRITICAL ERROR] Comparison aborted for table '%s'.\n", table.c_str());
+        throw;
+    }
 
     if (ar->Html)
     {
@@ -1302,7 +1337,7 @@ int FBCopy::cmpData(IBPP::Statement& st1, IBPP::Statement& st2, int col)
     if (!st1->IsNull(col) && st2->IsNull(col))
         return -1;
 
-    string s, s2;       // temporary variables, declared here since declaring
+    string s, s2;
     double dval, dval2;
     float fval, fval2;
     short sh, sh2;
@@ -1312,14 +1347,46 @@ int FBCopy::cmpData(IBPP::Statement& st1, IBPP::Statement& st2, int col)
     IBPP::Time t, t2;
     IBPP::Timestamp ts, ts2;
 
-    IBPP::SDT DataType = st1->ColumnType(col);
-    if (st1->ColumnScale(col)) // FIXME: IBPP has to be changed, this is only a hack
-        DataType = IBPP::sdDouble;
+    IBPP::SDT DataType1 = st1->ColumnType(col);
+    IBPP::SDT DataType2 = st2->ColumnType(col);
 
-    //if (DataType == IBPP::sdDate && Dialect == 1)
-    //DataType = IBPP::sdTimestamp;
+    // only treat ColumnScale as Double when dealing with a numerical type
+    if (st1->ColumnScale(col) && (DataType1 == IBPP::sdInteger || DataType1 == IBPP::sdSmallint || DataType1 == IBPP::sdLargeint))
+        DataType1 = IBPP::sdDouble;
 
-    switch (DataType)
+    if (st2->ColumnScale(col) && (DataType2 == IBPP::sdInteger || DataType2 == IBPP::sdSmallint || DataType2 == IBPP::sdLargeint))
+        DataType2 = IBPP::sdDouble;
+
+    bool isNumeric1 = (DataType1 == IBPP::sdSmallint || DataType1 == IBPP::sdInteger || DataType1 == IBPP::sdLargeint || DataType1 == IBPP::sdFloat || DataType1 == IBPP::sdDouble);
+	bool isNumeric2 = (DataType2 == IBPP::sdSmallint || DataType2 == IBPP::sdInteger || DataType2 == IBPP::sdLargeint || DataType2 == IBPP::sdFloat || DataType2 == IBPP::sdDouble);
+
+
+    if (DataType1 != DataType2)
+    {
+		if (isNumeric1 && isNumeric2)
+		{
+			st1->Get(col, dval);
+			st2->Get(col, dval2);
+			return cmpval(dval, dval2);
+		}
+		
+        if (DataType1 == IBPP::sdBlob || DataType2 == IBPP::sdBlob)
+        {
+            // comparison not possible via Get(), treat as different
+            return -1; 
+        }
+        
+        // fallback to string-based comparison, if possible
+        try {
+            st1->Get(col, s);
+            st2->Get(col, s2);
+            return cmpval(s, s2);
+        } catch (...) {
+            return -1; 
+        }
+    }
+
+    switch (DataType1)
     {
         case IBPP::sdString:
             st1->Get(col, s);
@@ -1358,7 +1425,8 @@ int FBCopy::cmpData(IBPP::Statement& st1, IBPP::Statement& st2, int col)
             st2->Get(col, int64val2);
             return cmpval(int64val, int64val2);
         case IBPP::sdBlob:
-        //    return 0;   // FIXME: copyBlob(st1, st2, col);
+			// skip comparison of BLOBs to prevent IBPP exceptions
+            return 0;
 
         default:
             fprintf(stderr, "WARNING: Datatype not supported! Column: %s\n",

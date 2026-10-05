@@ -8,8 +8,8 @@ OBJECTS_FBC=fbcopy/args.o fbcopy/fbcopy.o fbcopy/TableDependency.o fbcopy/main.o
 COMPILE_FLAGS=-O2 -DIBPP_LINUX -DIBPP_GCC -Iibpp -W -Wall -fPIC
 LINK_FLAGS=-pthread -lfbclient 
 
-#COMPILE_FLAGS=-O1 -DIBPP_WINDOWS -DIBPP_GCC -Iibpp
-#LINK_FLAGS=
+#COMPILE_FLAGS=-O1 -DIBPP_WINDOWS -DIBPP_GCC -D_WIN32 -Iibpp -I"C:\Program Files\Firebird\Firebird_5_0\include"
+#LINK_FLAGS=-static -static-libgcc -static-libstdc++ -L"C:\Program Files\Firebird\Firebird_5_0\lib\fbclient_ms.lib"
 
 all:	exe/fbcopy exe/fbexport
 
